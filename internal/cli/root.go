@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -176,9 +177,15 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 			step := store.Step{
 				Timestamp:  result.StartedAt,
 				Command:    sanitized.Command,
+				Status:     result.Status,
+				Reason:     result.Reason,
 				ExitCode:   result.ExitCode,
 				DurationMS: result.Duration.Milliseconds(),
 				CWD:        cwd,
+			}
+			if sanitized.Denied {
+				step.Status = "REDACTED"
+				step.Reason = "policy_redacted"
 			}
 
 			if err := s.AddStep(cmd.Context(), step); err != nil {
@@ -186,8 +193,19 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 			}
 
 			if runErr != nil {
+				if result.Reason == "command_not_found" && runtime.GOOS == "windows" {
+					if isWindowsShellBuiltin(args[0]) {
+						fmt.Fprintf(
+							cmd.ErrOrStderr(),
+							"Hint: %q is a Windows shell builtin. Try `infratrack run -- cmd /c %s`.\n",
+							args[0],
+							sanitized.Command,
+						)
+					}
+				}
+
 				return &ExitError{
-					Code: result.ExitCode,
+					Code: result.CLIExitCode,
 					Err:  fmt.Errorf("command execution failed: %w", runErr),
 				}
 			}
@@ -200,6 +218,15 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 			)
 			return nil
 		},
+	}
+}
+
+func isWindowsShellBuiltin(cmd string) bool {
+	switch strings.ToLower(cmd) {
+	case "echo", "dir", "copy", "type", "del", "erase", "move", "ren", "rename", "set":
+		return true
+	default:
+		return false
 	}
 }
 
