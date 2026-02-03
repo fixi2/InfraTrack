@@ -43,7 +43,9 @@ func TestJSONStoreLifecycle(t *testing.T) {
 	step := Step{
 		Timestamp:  startedAt.Add(2 * time.Second),
 		Command:    "kubectl apply -f deploy.yaml",
-		ExitCode:   0,
+		Status:     "OK",
+		Reason:     "",
+		ExitCode:   intPtr(0),
 		DurationMS: 1800,
 		CWD:        "/repo",
 	}
@@ -85,4 +87,14 @@ func TestJSONStoreLifecycle(t *testing.T) {
 	if last.Steps[0].Command != step.Command {
 		t.Fatalf("unexpected command: %s", last.Steps[0].Command)
 	}
+	if last.Steps[0].Status != "OK" {
+		t.Fatalf("unexpected status: %s", last.Steps[0].Status)
+	}
+	if last.Steps[0].ExitCode == nil || *last.Steps[0].ExitCode != 0 {
+		t.Fatalf("unexpected exit code: %v", last.Steps[0].ExitCode)
+	}
+}
+
+func intPtr(v int) *int {
+	return &v
 }

@@ -14,6 +14,7 @@ Recorded 2 step(s).
 ```sh
 kubectl apply -f deploy.yaml
 ```
+Result: OK
 Exit code: 0
 Duration: 820 ms
 
@@ -22,6 +23,7 @@ Duration: 820 ms
 ```sh
 kubectl rollout status deploy/api
 ```
+Result: OK
 Exit code: 0
 Duration: 1450 ms
 

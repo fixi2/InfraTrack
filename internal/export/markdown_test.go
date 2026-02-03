@@ -20,14 +20,16 @@ func TestRenderMarkdownGolden(t *testing.T) {
 			{
 				Timestamp:  time.Date(2026, 2, 3, 10, 0, 5, 0, time.UTC),
 				Command:    "kubectl apply -f deploy.yaml",
-				ExitCode:   0,
+				Status:     "OK",
+				ExitCode:   intPtr(0),
 				DurationMS: 820,
 				CWD:        "/repo",
 			},
 			{
 				Timestamp:  time.Date(2026, 2, 3, 10, 0, 9, 0, time.UTC),
 				Command:    "kubectl rollout status deploy/api",
-				ExitCode:   0,
+				Status:     "OK",
+				ExitCode:   intPtr(0),
 				DurationMS: 1450,
 				CWD:        "/repo",
 			},
@@ -44,6 +46,10 @@ func TestRenderMarkdownGolden(t *testing.T) {
 	if got != string(wantBytes) {
 		t.Fatalf("markdown mismatch\n--- got ---\n%s\n--- want ---\n%s", got, string(wantBytes))
 	}
+}
+
+func intPtr(v int) *int {
+	return &v
 }
 
 func TestRunbookFilename(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	RedactedValue    = "[REDACTED]"
+	RedactedValue     = "[REDACTED]"
 	DeniedPlaceholder = "[REDACTED BY POLICY]"
 )
 

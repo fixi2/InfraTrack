@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	ErrNotInitialized    = errors.New("store is not initialized")
+	ErrNotInitialized      = errors.New("store is not initialized")
 	ErrActiveSessionExists = errors.New("active session already exists")
-	ErrNoActiveSession   = errors.New("no active session")
-	ErrNoSessions        = errors.New("no completed sessions")
+	ErrNoActiveSession     = errors.New("no active session")
+	ErrNoSessions          = errors.New("no completed sessions")
 )
 
 type SessionStore interface {
