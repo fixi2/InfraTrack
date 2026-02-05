@@ -46,8 +46,9 @@ func NewRootCommand() (*cobra.Command, error) {
 
 func newInitCmd(s store.SessionStore) *cobra.Command {
 	return &cobra.Command{
-		Use:   "init",
-		Short: "Initialize local InfraTrack storage and config",
+		Use:     "init",
+		Aliases: []string{"i"},
+		Short:   "Initialize local InfraTrack storage and config",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if err := s.Init(cmd.Context()); err != nil {
 				return fmt.Errorf("initialize storage: %w", err)
@@ -61,9 +62,10 @@ func newInitCmd(s store.SessionStore) *cobra.Command {
 
 func newStartCmd(s store.SessionStore) *cobra.Command {
 	return &cobra.Command{
-		Use:   "start <title>",
-		Short: "Start a recording session",
-		Args:  cobra.ExactArgs(1),
+		Use:     "start <title>",
+		Aliases: []string{"s"},
+		Short:   "Start a recording session",
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			title := strings.TrimSpace(args[0])
 			if title == "" {
@@ -90,8 +92,9 @@ func newStartCmd(s store.SessionStore) *cobra.Command {
 
 func newStopCmd(s store.SessionStore) *cobra.Command {
 	return &cobra.Command{
-		Use:   "stop",
-		Short: "Stop the active recording session",
+		Use:     "stop",
+		Aliases: []string{"stp"},
+		Short:   "Stop the active recording session",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			endedAt := time.Now().UTC()
 			session, err := s.StopSession(cmd.Context(), endedAt)
@@ -151,9 +154,10 @@ func newStatusCmd(s store.SessionStore) *cobra.Command {
 
 func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 	return &cobra.Command{
-		Use:   "run -- <command> [args...]",
-		Short: "Execute a command and capture sanitized metadata for the active session",
-		Args:  cobra.ArbitraryArgs,
+		Use:     "run -- <command> [args...]",
+		Aliases: []string{"r"},
+		Short:   "Execute a command and capture sanitized metadata for the active session",
+		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("usage: infratrack run -- <command> [args...]")
@@ -213,13 +217,20 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 
 			fmt.Fprintf(
 				cmd.OutOrStdout(),
-				"Recorded step (%d ms, exit %d)\n",
+				"Recorded step (%d ms, exit %s)\n",
 				step.DurationMS,
-				step.ExitCode,
+				formatExitCode(step.ExitCode),
 			)
 			return nil
 		},
 	}
+}
+
+func formatExitCode(code *int) string {
+	if code == nil {
+		return "n/a"
+	}
+	return fmt.Sprintf("%d", *code)
 }
 
 func isWindowsShellBuiltin(cmd string) bool {
@@ -238,8 +249,9 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "export",
-		Short: "Export a completed session as markdown",
+		Use:     "export",
+		Aliases: []string{"x"},
+		Short:   "Export a completed session as markdown",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if !exportLast {
 				return errors.New("MVP currently supports only `infratrack export --last --md`")

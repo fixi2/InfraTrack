@@ -32,12 +32,12 @@ Expected output artifact:
 
 ## CLI Commands
 
-- `infratrack init` initializes local config and session storage in `os.UserConfigDir()/infratrack`.
-- `infratrack start "<title>"` starts recording session metadata.
-- `infratrack run -- <cmd ...>` executes command and records a sanitized step.
+- `infratrack init` (alias: `i`) initializes local config and session storage in `os.UserConfigDir()/infratrack`.
+- `infratrack start "<title>"` (alias: `s`) starts recording session metadata.
+- `infratrack run -- <cmd ...>` (alias: `r`) executes command and records a sanitized step.
 - `infratrack status` shows current recording state.
-- `infratrack stop` finalizes the active session.
-- `infratrack export --last --md` exports the latest completed session to markdown.
+- `infratrack stop` (alias: `stp`) finalizes the active session.
+- `infratrack export --last --md` (alias: `x`) exports the latest completed session to markdown.
 
 ## Windows Shell Builtins
 
