@@ -23,7 +23,7 @@ type SessionStore interface {
 	Init(ctx context.Context) error
 	IsInitialized(ctx context.Context) (bool, error)
 	RootDir() string
-	StartSession(ctx context.Context, title string, startedAt time.Time) (*Session, error)
+	StartSession(ctx context.Context, title, env string, startedAt time.Time) (*Session, error)
 	GetActiveSession(ctx context.Context) (*Session, error)
 	AddStep(ctx context.Context, step Step) error
 	StopSession(ctx context.Context, endedAt time.Time) (*Session, error)
@@ -87,7 +87,7 @@ func (s *JSONStore) IsInitialized(_ context.Context) (bool, error) {
 	return !info.IsDir(), nil
 }
 
-func (s *JSONStore) StartSession(_ context.Context, title string, startedAt time.Time) (*Session, error) {
+func (s *JSONStore) StartSession(_ context.Context, title, env string, startedAt time.Time) (*Session, error) {
 	if err := s.requireInitialized(); err != nil {
 		return nil, err
 	}
@@ -103,6 +103,7 @@ func (s *JSONStore) StartSession(_ context.Context, title string, startedAt time
 	session := &Session{
 		ID:        fmt.Sprintf("%d", startedAt.UnixNano()),
 		Title:     strings.TrimSpace(title),
+		Env:       strings.TrimSpace(env),
 		StartedAt: startedAt.UTC(),
 		Steps:     make([]Step, 0, 8),
 	}

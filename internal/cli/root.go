@@ -61,7 +61,9 @@ func newInitCmd(s store.SessionStore) *cobra.Command {
 }
 
 func newStartCmd(s store.SessionStore) *cobra.Command {
-	return &cobra.Command{
+	var env string
+
+	cmd := &cobra.Command{
 		Use:     "start <title>",
 		Aliases: []string{"s"},
 		Short:   "Start a recording session",
@@ -73,7 +75,7 @@ func newStartCmd(s store.SessionStore) *cobra.Command {
 			}
 
 			startedAt := time.Now().UTC()
-			session, err := s.StartSession(cmd.Context(), title, startedAt)
+			session, err := s.StartSession(cmd.Context(), title, env, startedAt)
 			if err != nil {
 				if errors.Is(err, store.ErrNotInitialized) {
 					return errors.New("InfraTrack is not initialized. Run `infratrack init` first")
@@ -84,10 +86,23 @@ func newStartCmd(s store.SessionStore) *cobra.Command {
 				return fmt.Errorf("start session: %w", err)
 			}
 
+			if session.Env != "" {
+				fmt.Fprintf(
+					cmd.OutOrStdout(),
+					"Started session %q (env: %s) at %s\n",
+					session.Title,
+					session.Env,
+					session.StartedAt.Format(time.RFC3339),
+				)
+				return nil
+			}
 			fmt.Fprintf(cmd.OutOrStdout(), "Started session %q at %s\n", session.Title, session.StartedAt.Format(time.RFC3339))
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&env, "env", "e", "", "Optional environment label (for example: staging, prod)")
+	return cmd
 }
 
 func newStopCmd(s store.SessionStore) *cobra.Command {
@@ -144,6 +159,9 @@ func newStatusCmd(s store.SessionStore) *cobra.Command {
 
 			fmt.Fprintf(cmd.OutOrStdout(), "Status: recording\n")
 			fmt.Fprintf(cmd.OutOrStdout(), "Title: %s\n", active.Title)
+			if active.Env != "" {
+				fmt.Fprintf(cmd.OutOrStdout(), "Env: %s\n", active.Env)
+			}
 			fmt.Fprintf(cmd.OutOrStdout(), "Started: %s\n", active.StartedAt.Format(time.RFC3339))
 			fmt.Fprintf(cmd.OutOrStdout(), "Recorded steps: %d\n", len(active.Steps))
 
@@ -246,6 +264,7 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 	var (
 		exportLast bool
 		exportMD   bool
+		exportFmt  string
 	)
 
 	cmd := &cobra.Command{
@@ -256,8 +275,14 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 			if !exportLast {
 				return errors.New("MVP currently supports only `infratrack export --last --md`")
 			}
-			if !exportMD {
-				return errors.New("only markdown export is supported in MVP. Use `--md`")
+			if exportFmt == "" && exportMD {
+				exportFmt = "md"
+			}
+			if exportFmt == "" {
+				return errors.New("only markdown export is supported in MVP. Use `--md` or `--format md`")
+			}
+			if !strings.EqualFold(exportFmt, "md") {
+				return errors.New("unsupported format. MVP supports only markdown (`md`)")
 			}
 
 			session, err := s.LastSession(cmd.Context())
@@ -283,7 +308,8 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&exportLast, "last", false, "Export the most recent completed session")
+	cmd.Flags().BoolVarP(&exportLast, "last", "l", false, "Export the most recent completed session")
 	cmd.Flags().BoolVar(&exportMD, "md", false, "Export markdown output")
+	cmd.Flags().StringVarP(&exportFmt, "format", "f", "", "Export format (MVP: md)")
 	return cmd
 }

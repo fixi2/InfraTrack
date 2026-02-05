@@ -15,6 +15,7 @@ type Step struct {
 type Session struct {
 	ID        string     `json:"id"`
 	Title     string     `json:"title"`
+	Env       string     `json:"env,omitempty"`
 	StartedAt time.Time  `json:"started_at"`
 	EndedAt   *time.Time `json:"ended_at,omitempty"`
 	Steps     []Step     `json:"steps"`

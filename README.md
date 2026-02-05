@@ -19,12 +19,12 @@ The binary is created as `infratrack` (or `infratrack.exe` on Windows).
 ## Quickstart Demo
 
 ```bash
-infratrack init
-infratrack start "Deploy to staging"
-infratrack run -- kubectl apply -f deploy.yaml
-infratrack run -- kubectl rollout status deploy/api
-infratrack stop
-infratrack export --last --md
+infratrack i
+infratrack s "Deploy to staging" -e staging
+infratrack r -- kubectl apply -f deploy.yaml
+infratrack r -- kubectl rollout status deploy/api
+infratrack stp
+infratrack x -l -f md
 ```
 
 Expected output artifact:
@@ -33,11 +33,12 @@ Expected output artifact:
 ## CLI Commands
 
 - `infratrack init` (alias: `i`) initializes local config and session storage in `os.UserConfigDir()/infratrack`.
-- `infratrack start "<title>"` (alias: `s`) starts recording session metadata.
+- `infratrack start "<title>"` (alias: `s`) starts recording session metadata. Optional environment label: `--env/-e`.
 - `infratrack run -- <cmd ...>` (alias: `r`) executes command and records a sanitized step.
 - `infratrack status` shows current recording state.
 - `infratrack stop` (alias: `stp`) finalizes the active session.
 - `infratrack export --last --md` (alias: `x`) exports the latest completed session to markdown.
+- Short flags: `export --last/-l`, `export --format/-f md`; `--md` remains supported for compatibility.
 
 ## Windows Shell Builtins
 

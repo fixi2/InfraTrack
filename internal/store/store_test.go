@@ -14,7 +14,7 @@ func TestJSONStoreLifecycle(t *testing.T) {
 	root := t.TempDir()
 	s := NewJSONStore(root)
 
-	_, err := s.StartSession(ctx, "deploy", time.Now().UTC())
+	_, err := s.StartSession(ctx, "deploy", "", time.Now().UTC())
 	if !errors.Is(err, ErrNotInitialized) {
 		t.Fatalf("expected ErrNotInitialized, got %v", err)
 	}
@@ -32,12 +32,15 @@ func TestJSONStoreLifecycle(t *testing.T) {
 	}
 
 	startedAt := time.Date(2026, 2, 3, 12, 0, 0, 0, time.UTC)
-	session, err := s.StartSession(ctx, "Deploy to staging", startedAt)
+	session, err := s.StartSession(ctx, "Deploy to staging", "staging", startedAt)
 	if err != nil {
 		t.Fatalf("start session failed: %v", err)
 	}
 	if session.Title != "Deploy to staging" {
 		t.Fatalf("unexpected title: %s", session.Title)
+	}
+	if session.Env != "staging" {
+		t.Fatalf("unexpected env: %s", session.Env)
 	}
 
 	step := Step{
@@ -80,6 +83,9 @@ func TestJSONStoreLifecycle(t *testing.T) {
 	}
 	if last.Title != "Deploy to staging" {
 		t.Fatalf("unexpected last session title: %s", last.Title)
+	}
+	if last.Env != "staging" {
+		t.Fatalf("unexpected last session env: %s", last.Env)
 	}
 	if len(last.Steps) != 1 {
 		t.Fatalf("expected 1 step in last session, got %d", len(last.Steps))

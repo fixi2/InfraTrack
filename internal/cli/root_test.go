@@ -40,3 +40,31 @@ func TestCommandAliases(t *testing.T) {
 		})
 	}
 }
+
+func TestShortFlags(t *testing.T) {
+	t.Parallel()
+
+	root, err := NewRootCommand()
+	if err != nil {
+		t.Fatalf("NewRootCommand failed: %v", err)
+	}
+
+	startCmd, _, err := root.Find([]string{"start"})
+	if err != nil {
+		t.Fatalf("root.Find(start) failed: %v", err)
+	}
+	if startCmd.Flags().ShorthandLookup("e") == nil {
+		t.Fatalf("short flag -e is not configured for start")
+	}
+
+	exportCmd, _, err := root.Find([]string{"export"})
+	if err != nil {
+		t.Fatalf("root.Find(export) failed: %v", err)
+	}
+	if exportCmd.Flags().ShorthandLookup("l") == nil {
+		t.Fatalf("short flag -l is not configured for export")
+	}
+	if exportCmd.Flags().ShorthandLookup("f") == nil {
+		t.Fatalf("short flag -f is not configured for export")
+	}
+}
