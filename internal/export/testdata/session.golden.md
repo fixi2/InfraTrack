@@ -29,7 +29,8 @@ Exit code: 0
 Duration: 1450 ms
 
 ## Verification
-- [ ] TODO: Define verification checks.
+- [ ] Suggested check: `kubectl get pods` reports expected pod status.
+- [ ] Suggested check: `kubectl rollout status deployment/<name>` completes successfully.
 
 ## Rollback
 - TODO: Add rollback commands.

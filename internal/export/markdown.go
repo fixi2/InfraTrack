@@ -13,15 +13,17 @@ import (
 
 var nonSlugChars = regexp.MustCompile(`[^a-z0-9]+`)
 var (
-	kubectlWord   = regexp.MustCompile(`\bkubectl\b`)
-	helmWord      = regexp.MustCompile(`\bhelm\b`)
-	dockerWord    = regexp.MustCompile(`\bdocker\b`)
-	terraformWord = regexp.MustCompile(`\bterraform\b`)
-	awsWord       = regexp.MustCompile(`\baws\b`)
-	gcloudWord    = regexp.MustCompile(`\bgcloud\b`)
-	azWord        = regexp.MustCompile(`\baz\b`)
-	psqlWord      = regexp.MustCompile(`\bpsql\b`)
-	mysqlWord     = regexp.MustCompile(`\bmysql\b`)
+	kubectlWord          = regexp.MustCompile(`\bkubectl\b`)
+	helmWord             = regexp.MustCompile(`\bhelm\b`)
+	dockerWord           = regexp.MustCompile(`\bdocker\b`)
+	terraformWord        = regexp.MustCompile(`\bterraform\b`)
+	kubectlApply         = regexp.MustCompile(`\bkubectl\b.*\bapply\b`)
+	kubectlRolloutStatus = regexp.MustCompile(`\bkubectl\b.*\brollout\b.*\bstatus\b`)
+	awsWord              = regexp.MustCompile(`\baws\b`)
+	gcloudWord           = regexp.MustCompile(`\bgcloud\b`)
+	azWord               = regexp.MustCompile(`\baz\b`)
+	psqlWord             = regexp.MustCompile(`\bpsql\b`)
+	mysqlWord            = regexp.MustCompile(`\bmysql\b`)
 )
 
 func WriteMarkdown(session *store.Session, workingDir string) (string, error) {
@@ -92,7 +94,12 @@ func RenderMarkdown(session *store.Session) string {
 	}
 
 	b.WriteString("## Verification\n")
-	b.WriteString("- [ ] TODO: Define verification checks.\n\n")
+	for _, check := range detectVerificationChecks(session.Steps) {
+		b.WriteString("- [ ] ")
+		b.WriteString(check)
+		b.WriteString("\n")
+	}
+	b.WriteString("\n")
 
 	b.WriteString("## Rollback\n")
 	b.WriteString("- TODO: Add rollback commands.\n\n")
@@ -198,6 +205,28 @@ func detectPreconditions(steps []store.Step) []string {
 
 	preconditions = append(preconditions, "Suggested: Confirm no secrets are needed in commands.")
 	return preconditions
+}
+
+func detectVerificationChecks(steps []store.Step) []string {
+	hasKubectlApply := false
+	hasKubectlRolloutStatus := false
+
+	for _, step := range steps {
+		cmd := strings.ToLower(step.Command)
+		hasKubectlApply = hasKubectlApply || kubectlApply.MatchString(cmd)
+		hasKubectlRolloutStatus = hasKubectlRolloutStatus || kubectlRolloutStatus.MatchString(cmd)
+	}
+
+	if hasKubectlApply || hasKubectlRolloutStatus {
+		return []string{
+			"Suggested check: `kubectl get pods` reports expected pod status.",
+			"Suggested check: `kubectl rollout status deployment/<name>` completes successfully.",
+		}
+	}
+
+	return []string{
+		"TODO: Define verification checks.",
+	}
 }
 
 func slugify(title string) string {
