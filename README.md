@@ -16,10 +16,26 @@ go build ./cmd/infratrack
 
 The binary is created as `infratrack` (or `infratrack.exe` on Windows).
 
-Build with explicit version/commit metadata:
+Local build with custom version metadata (optional):
 
 ```bash
-go build -ldflags "-X github.com/fixi2/InfraTrack/internal/buildinfo.Version=v0.2.0 -X github.com/fixi2/InfraTrack/internal/buildinfo.Commit=<git-sha>" ./cmd/infratrack
+go build -ldflags "-X github.com/fixi2/InfraTrack/internal/buildinfo.Version=v0.2.0" ./cmd/infratrack
+```
+
+## Automated Release Versioning
+
+Release version is set automatically from the Git tag (`v*`) in GitHub Actions.
+
+Flow:
+- create and push a tag, for example `v0.2.0`
+- workflow `.github/workflows/release.yml` runs tests, builds binaries, and injects version via `-ldflags`
+- release artifacts are published with that version
+
+Commands:
+
+```bash
+git tag -a v0.2.0 -m "InfraTrack v0.2.0"
+git push origin v0.2.0
 ```
 
 ## Quickstart Demo
@@ -44,7 +60,7 @@ Expected output artifact:
 - `infratrack status` shows current recording state.
 - `infratrack stop` (alias: `stp`) finalizes the active session.
 - `infratrack export --last --md` (alias: `x`) exports the latest completed session to markdown.
-- `infratrack version` (alias: `v`) prints build version/commit metadata.
+- `infratrack version` (alias: `v`) prints build version metadata.
 - Short flags: `export --last/-l`, `export --format/-f md`; `--md` remains supported for compatibility.
 
 ## Windows Shell Builtins
