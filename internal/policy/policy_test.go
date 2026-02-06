@@ -60,6 +60,13 @@ func TestPolicyApply(t *testing.T) {
 			denied:   false,
 			contains: "API_KEY=[REDACTED]",
 		},
+		{
+			name:     "redact quoted env assignment keeps quote",
+			raw:      `psql "host=db.example.com user=app"`,
+			args:     []string{"psql", "host=db.example.com user=app"},
+			denied:   false,
+			contains: `psql "host=[REDACTED] user=[REDACTED]"`,
+		},
 	}
 
 	for _, tc := range tests {

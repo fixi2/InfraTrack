@@ -57,7 +57,15 @@ func NewDefault() *Policy {
 				repl: `${1}` + RedactedValue,
 			},
 			{
-				re:   regexp.MustCompile(`(?i)(\b[A-Za-z_][A-Za-z0-9_]*=)([^\s]+)`),
+				re:   regexp.MustCompile(`(?i)(\b[A-Za-z_][A-Za-z0-9_]*=)"[^"]*"`),
+				repl: `${1}"` + RedactedValue + `"`,
+			},
+			{
+				re:   regexp.MustCompile(`(?i)(\b[A-Za-z_][A-Za-z0-9_]*=)'[^']*'`),
+				repl: `${1}'` + RedactedValue + `'`,
+			},
+			{
+				re:   regexp.MustCompile(`(?i)(\b[A-Za-z_][A-Za-z0-9_]*=)([^\s"']+)`),
 				repl: `${1}` + RedactedValue,
 			},
 		},

@@ -14,8 +14,14 @@ import (
 var nonSlugChars = regexp.MustCompile(`[^a-z0-9]+`)
 var (
 	kubectlWord   = regexp.MustCompile(`\bkubectl\b`)
+	helmWord      = regexp.MustCompile(`\bhelm\b`)
 	dockerWord    = regexp.MustCompile(`\bdocker\b`)
 	terraformWord = regexp.MustCompile(`\bterraform\b`)
+	awsWord       = regexp.MustCompile(`\baws\b`)
+	gcloudWord    = regexp.MustCompile(`\bgcloud\b`)
+	azWord        = regexp.MustCompile(`\baz\b`)
+	psqlWord      = regexp.MustCompile(`\bpsql\b`)
+	mysqlWord     = regexp.MustCompile(`\bmysql\b`)
 )
 
 func WriteMarkdown(session *store.Session, workingDir string) (string, error) {
@@ -130,13 +136,19 @@ func detectPreconditions(steps []store.Step) []string {
 	}
 
 	hasKubectl := false
+	hasHelm := false
 	hasDocker := false
 	hasTerraform := false
+	hasCloudCLI := false
+	hasDBCLI := false
 	for _, step := range steps {
 		cmd := strings.ToLower(step.Command)
 		hasKubectl = hasKubectl || kubectlWord.MatchString(cmd)
+		hasHelm = hasHelm || helmWord.MatchString(cmd)
 		hasDocker = hasDocker || dockerWord.MatchString(cmd)
 		hasTerraform = hasTerraform || terraformWord.MatchString(cmd)
+		hasCloudCLI = hasCloudCLI || awsWord.MatchString(cmd) || gcloudWord.MatchString(cmd) || azWord.MatchString(cmd)
+		hasDBCLI = hasDBCLI || psqlWord.MatchString(cmd) || mysqlWord.MatchString(cmd)
 	}
 
 	preconditions := make([]string, 0, 10)
@@ -144,6 +156,12 @@ func detectPreconditions(steps []store.Step) []string {
 		preconditions = append(preconditions,
 			"Suggested: `kubectl` is installed and available in PATH.",
 			"Suggested: Kubernetes context and access are configured (`KUBECONFIG`/current-context).",
+		)
+	}
+	if hasHelm {
+		preconditions = append(preconditions,
+			"Suggested: `helm` is installed and points to the intended Kubernetes context.",
+			"Suggested: Required chart repositories are configured and reachable.",
 		)
 	}
 	if hasDocker {
@@ -156,6 +174,18 @@ func detectPreconditions(steps []store.Step) []string {
 		preconditions = append(preconditions,
 			"Suggested: `terraform` CLI is installed and initialized for this workspace.",
 			"Suggested: Backend credentials and target workspace are configured.",
+		)
+	}
+	if hasCloudCLI {
+		preconditions = append(preconditions,
+			"Suggested: Cloud CLI authentication is active for the intended account/project/subscription.",
+			"Suggested: Required IAM permissions are available for the target resources.",
+		)
+	}
+	if hasDBCLI {
+		preconditions = append(preconditions,
+			"Suggested: Database client access is configured (host, port, user, SSL mode).",
+			"Suggested: Use least-privilege credentials and avoid exposing secrets in command arguments.",
 		)
 	}
 
