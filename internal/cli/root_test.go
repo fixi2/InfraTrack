@@ -20,6 +20,7 @@ func TestCommandAliases(t *testing.T) {
 		{name: "run alias", input: []string{"r"}, wantUse: "run"},
 		{name: "stop alias", input: []string{"stp"}, wantUse: "stop"},
 		{name: "export alias", input: []string{"x"}, wantUse: "export"},
+		{name: "version alias", input: []string{"v"}, wantUse: "version"},
 	}
 
 	for _, tc := range tests {

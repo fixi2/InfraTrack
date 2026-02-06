@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fixi2/InfraTrack/internal/buildinfo"
 	"github.com/fixi2/InfraTrack/internal/capture"
 	"github.com/fixi2/InfraTrack/internal/export"
 	"github.com/fixi2/InfraTrack/internal/policy"
@@ -39,6 +40,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		newStatusCmd(s),
 		newRunCmd(s, p),
 		newExportCmd(s),
+		newVersionCmd(),
 	)
 
 	return rootCmd, nil
@@ -312,4 +314,15 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 	cmd.Flags().BoolVar(&exportMD, "md", false, "Export markdown output")
 	cmd.Flags().StringVarP(&exportFmt, "format", "f", "", "Export format (MVP: md)")
 	return cmd
+}
+
+func newVersionCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "version",
+		Aliases: []string{"v"},
+		Short:   "Print InfraTrack build version",
+		Run: func(cmd *cobra.Command, _ []string) {
+			fmt.Fprintf(cmd.OutOrStdout(), "InfraTrack %s\n", buildinfo.String())
+		},
+	}
 }
