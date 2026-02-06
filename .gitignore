@@ -2,6 +2,7 @@
 .cursor/
 runbooks/
 .infratrack/
+.private-dev-docs/
 *.env
 *.key
 *.pem
