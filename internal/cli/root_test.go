@@ -1,6 +1,10 @@
 package cli
 
-import "testing"
+import (
+	"bytes"
+	"strings"
+	"testing"
+)
 
 func TestCommandAliases(t *testing.T) {
 	t.Parallel()
@@ -20,6 +24,7 @@ func TestCommandAliases(t *testing.T) {
 		{name: "run alias", input: []string{"r"}, wantUse: "run"},
 		{name: "stop alias", input: []string{"stp"}, wantUse: "stop"},
 		{name: "export alias", input: []string{"x"}, wantUse: "export"},
+		{name: "alias command", input: []string{"alias"}, wantUse: "alias"},
 		{name: "version alias", input: []string{"v"}, wantUse: "version"},
 	}
 
@@ -56,6 +61,54 @@ func TestSessionsCommandExists(t *testing.T) {
 	}
 	if cmd == nil || cmd.Name() != "list" {
 		t.Fatalf("sessions list command not found")
+	}
+}
+
+func TestAliasCommandOutput(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		shell    string
+		contains string
+		wantErr  bool
+	}{
+		{name: "powershell", shell: "powershell", contains: "Set-Alias -Name it -Value infratrack"},
+		{name: "bash", shell: "bash", contains: "alias it='infratrack'"},
+		{name: "zsh", shell: "zsh", contains: "alias it='infratrack'"},
+		{name: "cmd", shell: "cmd", contains: "doskey it=infratrack $*"},
+		{name: "unsupported", shell: "fish", wantErr: true},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root, err := NewRootCommand()
+			if err != nil {
+				t.Fatalf("NewRootCommand failed: %v", err)
+			}
+
+			var out bytes.Buffer
+			root.SetOut(&out)
+			root.SetErr(&out)
+			root.SetArgs([]string{"alias", "--shell", tc.shell})
+
+			err = root.Execute()
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !strings.Contains(out.String(), tc.contains) {
+				t.Fatalf("output %q does not contain %q", out.String(), tc.contains)
+			}
+		})
 	}
 }
 

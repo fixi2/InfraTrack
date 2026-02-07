@@ -41,6 +41,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		newRunCmd(s, p),
 		newExportCmd(s),
 		newSessionsCmd(s),
+		newAliasCmd(),
 		newVersionCmd(),
 	)
 
@@ -392,4 +393,32 @@ func newVersionCmd() *cobra.Command {
 			fmt.Fprintf(cmd.OutOrStdout(), "InfraTrack %s\n", buildinfo.String())
 		},
 	}
+}
+
+func newAliasCmd() *cobra.Command {
+	var shellName string
+
+	cmd := &cobra.Command{
+		Use:   "alias",
+		Short: "Print shell alias snippet (does not modify your shell config)",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			switch strings.ToLower(shellName) {
+			case "powershell":
+				fmt.Fprintln(cmd.OutOrStdout(), "Set-Alias -Name it -Value infratrack")
+				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding the line above to $PROFILE")
+			case "bash", "zsh":
+				fmt.Fprintln(cmd.OutOrStdout(), "alias it='infratrack'")
+				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding the line above to ~/.bashrc or ~/.zshrc")
+			case "cmd":
+				fmt.Fprintln(cmd.OutOrStdout(), "doskey it=infratrack $*")
+				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding this to your cmd startup script")
+			default:
+				return errors.New("unsupported shell. Use one of: powershell, bash, zsh, cmd")
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&shellName, "shell", "powershell", "Shell name: powershell|bash|zsh|cmd")
+	return cmd
 }

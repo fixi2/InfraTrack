@@ -40,6 +40,7 @@ Expected output artifact:
 - `infratrack export --last --md` (alias: `x`) exports the latest completed session to markdown.
 - `infratrack export --session <id> -f md` exports a specific completed session by id.
 - `infratrack sessions list` lists recent completed sessions (use `-n` to control count).
+- `infratrack alias --shell <powershell|bash|zsh|cmd>` prints alias snippet for `it` (no system changes).
 - `infratrack version` (alias: `v`) prints build version metadata.
 - Short flags: `export --last/-l`, `export --format/-f md`; `--md` remains supported for compatibility.
 
