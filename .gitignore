@@ -1,5 +1,3 @@
-# Cursor project rules (keep local, do not commit)
-.cursor/
 runbooks/
 .infratrack/
 .private-dev-docs/
@@ -10,3 +8,5 @@ runbooks/
 *.pem
 infratrack
 infratrack.exe
+infratrack-dev.exe
+infratrack-*.exe
