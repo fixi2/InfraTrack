@@ -3,6 +3,7 @@ package export
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -69,5 +70,74 @@ func TestRunbookFilename(t *testing.T) {
 	want := "20260203-100000-deploy-to-staging.md"
 	if got != want {
 		t.Fatalf("filename mismatch: got %q want %q", got, want)
+	}
+}
+
+func TestDetectRollback(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		steps      []store.Step
+		wantTitle  string
+		wantItems  []string
+	}{
+		{
+			name: "rollback suggested from rollout status deployment",
+			steps: []store.Step{
+				{Command: "kubectl rollout status deployment/api"},
+			},
+			wantTitle: "Rollback (suggested, use with caution)",
+			wantItems: []string{
+				"Suggested: use with caution. Verify root cause and deployment revision before undo.",
+				"Suggested: `kubectl rollout undo deployment/api`",
+			},
+		},
+		{
+			name: "rollback suggested from set image deployment",
+			steps: []store.Step{
+				{Command: "kubectl set image deployment/web api=repo/app:v2"},
+			},
+			wantTitle: "Rollback (suggested, use with caution)",
+			wantItems: []string{
+				"Suggested: use with caution. Verify root cause and deployment revision before undo.",
+				"Suggested: `kubectl rollout undo deployment/web`",
+			},
+		},
+		{
+			name: "no rollback for apply without deployment name",
+			steps: []store.Step{
+				{Command: "kubectl apply -f deploy.yaml"},
+			},
+			wantTitle: "Rollback",
+			wantItems: []string{
+				"TODO: Add rollback commands.",
+			},
+		},
+		{
+			name: "no rollback for deploy alias without deployment slash",
+			steps: []store.Step{
+				{Command: "kubectl rollout status deploy/api"},
+			},
+			wantTitle: "Rollback",
+			wantItems: []string{
+				"TODO: Add rollback commands.",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotTitle, gotItems := detectRollback(tt.steps)
+			if gotTitle != tt.wantTitle {
+				t.Fatalf("title mismatch: got %q want %q", gotTitle, tt.wantTitle)
+			}
+			if !reflect.DeepEqual(gotItems, tt.wantItems) {
+				t.Fatalf("items mismatch: got %#v want %#v", gotItems, tt.wantItems)
+			}
+		})
 	}
 }
