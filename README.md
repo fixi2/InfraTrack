@@ -7,7 +7,7 @@ InfraTrack is a local-first CLI that records explicitly executed commands and ex
 Windows (recommended once package is approved in winget):
 
 ```bash
-winget install <PACKAGE_ID>
+winget install fixi2.InfraTrack
 ```
 
 Manual fallback (all platforms):
