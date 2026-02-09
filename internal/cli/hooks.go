@@ -22,6 +22,8 @@ func newHooksCmd(s store.SessionStore, stateStore hooks.StateStore) *cobra.Comma
 		newHooksEnableCmd(stateStore),
 		newHooksDisableCmd(stateStore),
 		newHooksConfigureCmd(stateStore),
+		newHooksInstallCmd(),
+		newHooksUninstallCmd(),
 	)
 	return cmd
 }
@@ -42,6 +44,11 @@ func newHooksStatusCmd(s store.SessionStore, stateStore hooks.StateStore) *cobra
 			fmt.Fprintf(cmd.OutOrStdout(), "Remind every: %d\n", state.RemindEvery)
 			fmt.Fprintf(cmd.OutOrStdout(), "Recorded commands: %d\n", state.CommandCount)
 			fmt.Fprintf(cmd.OutOrStdout(), "Session recording: %s\n", boolLabel(recording))
+			psInstalled, psDetails := powerShellInstallStatus()
+			fmt.Fprintf(cmd.OutOrStdout(), "PowerShell hook installed: %s\n", boolLabel(psInstalled))
+			if psDetails != "" {
+				fmt.Fprintln(cmd.OutOrStdout(), psDetails)
+			}
 			return nil
 		},
 	}
