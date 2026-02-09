@@ -11,6 +11,7 @@ import (
 	"github.com/fixi2/InfraTrack/internal/buildinfo"
 	"github.com/fixi2/InfraTrack/internal/capture"
 	"github.com/fixi2/InfraTrack/internal/export"
+	"github.com/fixi2/InfraTrack/internal/hooks"
 	"github.com/fixi2/InfraTrack/internal/policy"
 	"github.com/fixi2/InfraTrack/internal/store"
 	"github.com/fixi2/InfraTrack/internal/util"
@@ -25,6 +26,7 @@ func NewRootCommand() (*cobra.Command, error) {
 
 	s := store.NewJSONStore(rootDir)
 	p := policy.NewDefault()
+	hooksState := hooks.NewFileStateStore(rootDir)
 
 	rootCmd := &cobra.Command{
 		Use:   "infratrack",
@@ -42,6 +44,8 @@ func NewRootCommand() (*cobra.Command, error) {
 		newRunCmd(s, p),
 		newExportCmd(s),
 		newSessionsCmd(s),
+		newHooksCmd(s, hooksState),
+		newHookCmd(s, p, hooksState),
 		newAliasCmd(),
 		newVersionCmd(),
 	)

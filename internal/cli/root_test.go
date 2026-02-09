@@ -64,6 +64,31 @@ func TestSessionsCommandExists(t *testing.T) {
 	}
 }
 
+func TestHooksCommandsExist(t *testing.T) {
+	t.Parallel()
+
+	root, err := NewRootCommand()
+	if err != nil {
+		t.Fatalf("NewRootCommand failed: %v", err)
+	}
+
+	hooksStatus, _, err := root.Find([]string{"hooks", "status"})
+	if err != nil {
+		t.Fatalf("root.Find(hooks status) failed: %v", err)
+	}
+	if hooksStatus == nil || hooksStatus.Name() != "status" {
+		t.Fatalf("hooks status command not found")
+	}
+
+	hookRecord, _, err := root.Find([]string{"hook", "record"})
+	if err != nil {
+		t.Fatalf("root.Find(hook record) failed: %v", err)
+	}
+	if hookRecord == nil || hookRecord.Name() != "record" {
+		t.Fatalf("hook record command not found")
+	}
+}
+
 func TestAliasCommandOutput(t *testing.T) {
 	t.Parallel()
 
