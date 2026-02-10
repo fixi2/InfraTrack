@@ -22,6 +22,8 @@ func newHooksCmd(s store.SessionStore, stateStore hooks.StateStore) *cobra.Comma
 		newHooksEnableCmd(stateStore),
 		newHooksDisableCmd(stateStore),
 		newHooksConfigureCmd(stateStore),
+		newHooksInstallCmd(),
+		newHooksUninstallCmd(),
 	)
 	return cmd
 }
@@ -39,9 +41,18 @@ func newHooksStatusCmd(s store.SessionStore, stateStore hooks.StateStore) *cobra
 			recording := activeErr == nil
 
 			fmt.Fprintf(cmd.OutOrStdout(), "Hooks: %s\n", boolLabel(state.Enabled))
-			fmt.Fprintf(cmd.OutOrStdout(), "Remind every: %d\n", state.RemindEvery)
+			if state.RemindEvery == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "Remind every: disabled")
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "Remind every: %d\n", state.RemindEvery)
+			}
 			fmt.Fprintf(cmd.OutOrStdout(), "Recorded commands: %d\n", state.CommandCount)
 			fmt.Fprintf(cmd.OutOrStdout(), "Session recording: %s\n", boolLabel(recording))
+			psInstalled, psDetails := powerShellInstallStatus()
+			fmt.Fprintf(cmd.OutOrStdout(), "PowerShell hook installed: %s\n", boolLabel(psInstalled))
+			if psDetails != "" {
+				fmt.Fprintln(cmd.OutOrStdout(), psDetails)
+			}
 			return nil
 		},
 	}
@@ -93,8 +104,8 @@ func newHooksConfigureCmd(stateStore hooks.StateStore) *cobra.Command {
 		Aliases: []string{"config"},
 		Short:   "Configure hooks mode settings",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if remindEvery <= 0 {
-				return errors.New("remind-every must be greater than 0")
+			if remindEvery < 0 {
+				return errors.New("remind-every must be greater than or equal to 0")
 			}
 
 			state, err := stateStore.Load(cmd.Context())
@@ -105,12 +116,16 @@ func newHooksConfigureCmd(stateStore hooks.StateStore) *cobra.Command {
 			if err := stateStore.Save(cmd.Context(), state); err != nil {
 				return fmt.Errorf("save hooks state: %w", err)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Updated hooks remind-every to %d\n", remindEvery)
+			if remindEvery == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "Updated hooks remind-every to disabled")
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "Updated hooks remind-every to %d\n", remindEvery)
+			}
 			return nil
 		},
 	}
 
-	cmd.Flags().IntVar(&remindEvery, "remind-every", 20, "Print [REC] reminder every N recorded commands")
+	cmd.Flags().IntVar(&remindEvery, "remind-every", 20, "Print [REC] reminder every N recorded commands (0 disables reminders)")
 	return cmd
 }
 

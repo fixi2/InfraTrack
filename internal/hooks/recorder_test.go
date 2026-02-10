@@ -59,6 +59,44 @@ func TestRecorderRecord(t *testing.T) {
 	}
 }
 
+func TestRecorderNoReminderWhenDisabled(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	root := newRetryTempDir(t)
+	sessionStore := store.NewJSONStore(root)
+	if err := sessionStore.Init(ctx); err != nil {
+		t.Fatalf("init store: %v", err)
+	}
+	if _, err := sessionStore.StartSession(ctx, "hooks", "", time.Now().UTC()); err != nil {
+		t.Fatalf("start session: %v", err)
+	}
+
+	stateStore := NewFileStateStore(root)
+	state := defaultState()
+	state.Enabled = true
+	state.RemindEvery = 0
+	if err := stateStore.Save(ctx, state); err != nil {
+		t.Fatalf("save state: %v", err)
+	}
+
+	rec := NewRecorder(sessionStore, policy.NewDefault(), stateStore)
+	for i := 0; i < 5; i++ {
+		res, err := rec.Record(ctx, RecordInput{
+			Command:    "echo hello",
+			CWD:        root,
+			ExitCode:   0,
+			DurationMS: 1,
+		})
+		if err != nil {
+			t.Fatalf("record %d: %v", i, err)
+		}
+		if res.Reminder {
+			t.Fatalf("expected reminders to stay disabled")
+		}
+	}
+}
+
 func TestRecorderSkipsInfraTrackCommand(t *testing.T) {
 	t.Parallel()
 

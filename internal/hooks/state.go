@@ -78,7 +78,7 @@ func defaultState() State {
 }
 
 func normalizeState(state *State) {
-	if state.RemindEvery <= 0 {
+	if state.RemindEvery < 0 {
 		state.RemindEvery = defaultRemindEvery
 	}
 	if state.CommandCount < 0 {

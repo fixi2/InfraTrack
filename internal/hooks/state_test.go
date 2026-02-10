@@ -51,3 +51,28 @@ func TestFileStateStoreSaveLoad(t *testing.T) {
 		t.Fatalf("unexpected state file name: %s", s.path)
 	}
 }
+
+func TestFileStateStoreAllowsDisabledReminder(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	root := newRetryTempDir(t)
+	s := NewFileStateStore(root)
+
+	state := State{
+		Enabled:      true,
+		RemindEvery:  0,
+		CommandCount: 2,
+	}
+	if err := s.Save(ctx, state); err != nil {
+		t.Fatalf("save state: %v", err)
+	}
+
+	got, err := s.Load(ctx)
+	if err != nil {
+		t.Fatalf("load state: %v", err)
+	}
+	if got.RemindEvery != 0 {
+		t.Fatalf("expected remind every to stay disabled (0), got %d", got.RemindEvery)
+	}
+}
