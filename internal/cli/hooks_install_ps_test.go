@@ -63,3 +63,14 @@ func TestReplaceBetweenMarkersMalformed(t *testing.T) {
 		t.Fatal("expected malformed markers to return error")
 	}
 }
+
+func TestHooksHomeDirOverride(t *testing.T) {
+	t.Setenv("INFRATRACK_HOME_DIR", "/tmp/infratrack-test-home")
+	got, err := hooksHomeDir()
+	if err != nil {
+		t.Fatalf("hooksHomeDir failed: %v", err)
+	}
+	if got != "/tmp/infratrack-test-home" {
+		t.Fatalf("unexpected hooks home dir: %s", got)
+	}
+}

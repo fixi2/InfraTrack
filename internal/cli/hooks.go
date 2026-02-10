@@ -53,6 +53,16 @@ func newHooksStatusCmd(s store.SessionStore, stateStore hooks.StateStore) *cobra
 			if psDetails != "" {
 				fmt.Fprintln(cmd.OutOrStdout(), psDetails)
 			}
+			bashInstalled, bashDetails := bashInstallStatus()
+			fmt.Fprintf(cmd.OutOrStdout(), "Bash hook installed: %s\n", boolLabel(bashInstalled))
+			if bashDetails != "" {
+				fmt.Fprintln(cmd.OutOrStdout(), bashDetails)
+			}
+			zshInstalled, zshDetails := zshInstallStatus()
+			fmt.Fprintf(cmd.OutOrStdout(), "Zsh hook installed: %s\n", boolLabel(zshInstalled))
+			if zshDetails != "" {
+				fmt.Fprintln(cmd.OutOrStdout(), zshDetails)
+			}
 			return nil
 		},
 	}

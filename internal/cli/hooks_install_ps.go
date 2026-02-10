@@ -23,7 +23,7 @@ func newHooksInstallCmd() *cobra.Command {
 		Use:   "install",
 		Short: "Install shell hooks",
 	}
-	cmd.AddCommand(newHooksInstallPowerShellCmd())
+	cmd.AddCommand(newHooksInstallPowerShellCmd(), newHooksInstallBashCmd(), newHooksInstallZshCmd())
 	return cmd
 }
 
@@ -32,7 +32,7 @@ func newHooksUninstallCmd() *cobra.Command {
 		Use:   "uninstall",
 		Short: "Uninstall shell hooks",
 	}
-	cmd.AddCommand(newHooksUninstallPowerShellCmd())
+	cmd.AddCommand(newHooksUninstallPowerShellCmd(), newHooksUninstallBashCmd(), newHooksUninstallZshCmd())
 	return cmd
 }
 
@@ -181,7 +181,7 @@ func choosePowerShellProfileForInstall() (string, error) {
 }
 
 func powerShellProfileCandidates() []string {
-	home, err := os.UserHomeDir()
+	home, err := hooksHomeDir()
 	if err != nil || home == "" {
 		return nil
 	}
@@ -189,6 +189,13 @@ func powerShellProfileCandidates() []string {
 		filepath.Join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1"),
 		filepath.Join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1"),
 	}
+}
+
+func hooksHomeDir() (string, error) {
+	if override := strings.TrimSpace(os.Getenv("INFRATRACK_HOME_DIR")); override != "" {
+		return override, nil
+	}
+	return os.UserHomeDir()
 }
 
 func upsertPowerShellHookBlock(content string) (string, bool, error) {
