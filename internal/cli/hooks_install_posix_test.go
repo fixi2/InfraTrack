@@ -9,7 +9,7 @@ func TestUpsertBashHookBlock(t *testing.T) {
 	t.Parallel()
 
 	original := "export PATH=$PATH:$HOME/bin\n"
-	updated, changed, err := upsertHookBlock(original, bashHookBeginMarker, bashHookEndMarker, bashHookBlock())
+	updated, changed, err := upsertHookBlock(original, bashHookBeginMarker, bashHookEndMarker, bashHookBlock("/usr/local/bin/infratrack"))
 	if err != nil {
 		t.Fatalf("upsert bash block failed: %v", err)
 	}
@@ -20,7 +20,7 @@ func TestUpsertBashHookBlock(t *testing.T) {
 		t.Fatal("expected bash markers in content")
 	}
 
-	second, changed2, err := upsertHookBlock(updated, bashHookBeginMarker, bashHookEndMarker, bashHookBlock())
+	second, changed2, err := upsertHookBlock(updated, bashHookBeginMarker, bashHookEndMarker, bashHookBlock("/usr/local/bin/infratrack"))
 	if err != nil {
 		t.Fatalf("second upsert failed: %v", err)
 	}
@@ -35,7 +35,7 @@ func TestUpsertBashHookBlock(t *testing.T) {
 func TestRemoveBashHookBlock(t *testing.T) {
 	t.Parallel()
 
-	withBlock, _, err := upsertHookBlock("echo hi\n", bashHookBeginMarker, bashHookEndMarker, bashHookBlock())
+	withBlock, _, err := upsertHookBlock("echo hi\n", bashHookBeginMarker, bashHookEndMarker, bashHookBlock("/usr/local/bin/infratrack"))
 	if err != nil {
 		t.Fatalf("create block failed: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestRemoveBashHookBlock(t *testing.T) {
 func TestUpsertZshHookBlock(t *testing.T) {
 	t.Parallel()
 
-	updated, changed, err := upsertHookBlock("", zshHookBeginMarker, zshHookEndMarker, zshHookBlock())
+	updated, changed, err := upsertHookBlock("", zshHookBeginMarker, zshHookEndMarker, zshHookBlock("/usr/local/bin/infratrack"))
 	if err != nil {
 		t.Fatalf("upsert zsh block failed: %v", err)
 	}
@@ -67,5 +67,17 @@ func TestUpsertZshHookBlock(t *testing.T) {
 	}
 	if !strings.Contains(updated, zshHookBeginMarker) || !strings.Contains(updated, zshHookEndMarker) {
 		t.Fatal("expected zsh markers in content")
+	}
+}
+
+func TestHookBlocksUseAbsolutePath(t *testing.T) {
+	t.Parallel()
+	bashBlock := bashHookBlock("/usr/local/bin/infratrack")
+	if !strings.Contains(bashBlock, "'/usr/local/bin/infratrack' hook record") {
+		t.Fatalf("expected absolute path in bash block: %s", bashBlock)
+	}
+	zshBlock := zshHookBlock("/usr/local/bin/infratrack")
+	if !strings.Contains(zshBlock, "'/usr/local/bin/infratrack' hook record") {
+		t.Fatalf("expected absolute path in zsh block: %s", zshBlock)
 	}
 }

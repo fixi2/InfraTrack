@@ -26,7 +26,11 @@ func newHooksInstallBashCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return installPosixHook(cmd, path, bashHookBeginMarker, bashHookEndMarker, bashHookBlock())
+			exe, err := os.Executable()
+			if err != nil {
+				return fmt.Errorf("resolve executable path: %w", err)
+			}
+			return installPosixHook(cmd, path, bashHookBeginMarker, bashHookEndMarker, bashHookBlock(exe))
 		},
 	}
 }
@@ -40,7 +44,11 @@ func newHooksInstallZshCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return installPosixHook(cmd, path, zshHookBeginMarker, zshHookEndMarker, zshHookBlock())
+			exe, err := os.Executable()
+			if err != nil {
+				return fmt.Errorf("resolve executable path: %w", err)
+			}
+			return installPosixHook(cmd, path, zshHookBeginMarker, zshHookEndMarker, zshHookBlock(exe))
 		},
 	}
 }
@@ -193,7 +201,12 @@ func zshInstallStatus() (bool, string) {
 	return state == "installed", fmt.Sprintf("- %s: %s", path, state)
 }
 
-func bashHookBlock() string {
+func shellSingleQuote(value string) string {
+	return strings.ReplaceAll(value, "'", "'\"'\"'")
+}
+
+func bashHookBlock(executablePath string) string {
+	exe := shellSingleQuote(executablePath)
 	return strings.Join([]string{
 		bashHookBeginMarker,
 		"__infratrack_hook_active=0",
@@ -207,7 +220,7 @@ func bashHookBlock() string {
 		"    infratrack*|it*) return ;;",
 		"  esac",
 		"  __infratrack_hook_active=1",
-		"  infratrack hook record --command \"$__it_cmd\" --exit-code \"$__it_exit\" --duration-ms 0 --cwd \"$PWD\" >/dev/null 2>&1 || true",
+		fmt.Sprintf("  '%s' hook record --command \"$__it_cmd\" --exit-code \"$__it_exit\" --duration-ms 0 --cwd \"$PWD\" >/dev/null 2>&1 || true", exe),
 		"  __infratrack_hook_active=0",
 		"}",
 		"if [ -n \"${PROMPT_COMMAND:-}\" ]; then",
@@ -228,7 +241,8 @@ func bashHookBlock() string {
 	}, "\n")
 }
 
-func zshHookBlock() string {
+func zshHookBlock(executablePath string) string {
+	exe := shellSingleQuote(executablePath)
 	return strings.Join([]string{
 		zshHookBeginMarker,
 		"autoload -Uz add-zsh-hook",
@@ -243,7 +257,7 @@ func zshHookBlock() string {
 		"    infratrack*|it*) return ;;",
 		"  esac",
 		"  __infratrack_hook_active=1",
-		"  infratrack hook record --command \"$__it_cmd\" --exit-code \"$__it_exit\" --duration-ms 0 --cwd \"$PWD\" >/dev/null 2>&1 || true",
+		fmt.Sprintf("  '%s' hook record --command \"$__it_cmd\" --exit-code \"$__it_exit\" --duration-ms 0 --cwd \"$PWD\" >/dev/null 2>&1 || true", exe),
 		"  __infratrack_hook_active=0",
 		"}",
 		"add-zsh-hook precmd __infratrack_precmd",

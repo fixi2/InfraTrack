@@ -46,9 +46,9 @@ func newHooksInstallPowerShellCmd() *cobra.Command {
 			if runtime.GOOS != "windows" {
 				return errors.New("powershell hooks install is supported on Windows in this stage")
 			}
-			path, err := choosePowerShellProfileForInstall()
-			if err != nil {
-				return err
+			candidates := powerShellProfileCandidates()
+			if len(candidates) == 0 {
+				return errors.New("cannot resolve PowerShell profile path")
 			}
 			if !yes {
 				ok, err := confirmInstall(cmd)
@@ -61,22 +61,27 @@ func newHooksInstallPowerShellCmd() *cobra.Command {
 				}
 			}
 
-			current, err := readTextFile(path)
-			if err != nil && !errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("read profile: %w", err)
-			}
-			updated, changed, err := upsertPowerShellHookBlock(current)
+			exe, err := os.Executable()
 			if err != nil {
-				return err
+				return fmt.Errorf("resolve executable path: %w", err)
 			}
-			if err := writeTextFileAtomic(path, updated); err != nil {
-				return fmt.Errorf("write profile: %w", err)
-			}
-
-			if changed {
-				fmt.Fprintf(cmd.OutOrStdout(), "Installed PowerShell hooks in %s\n", path)
-			} else {
-				fmt.Fprintf(cmd.OutOrStdout(), "PowerShell hooks already installed in %s\n", path)
+			for _, path := range candidates {
+				current, err := readTextFile(path)
+				if err != nil && !errors.Is(err, os.ErrNotExist) {
+					return fmt.Errorf("read profile %s: %w", path, err)
+				}
+				updated, changed, err := upsertPowerShellHookBlock(current, exe)
+				if err != nil {
+					return err
+				}
+				if err := writeTextFileAtomic(path, updated); err != nil {
+					return fmt.Errorf("write profile %s: %w", path, err)
+				}
+				if changed {
+					fmt.Fprintf(cmd.OutOrStdout(), "Installed PowerShell hooks in %s\n", path)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "PowerShell hooks already installed in %s\n", path)
+				}
 			}
 			fmt.Fprintln(cmd.OutOrStdout(), "Open a new PowerShell session to activate the hook.")
 			return nil
@@ -167,19 +172,6 @@ func powerShellInstallStatus() (bool, string) {
 	return installedAny, strings.Join(lines, "\n")
 }
 
-func choosePowerShellProfileForInstall() (string, error) {
-	candidates := powerShellProfileCandidates()
-	if len(candidates) == 0 {
-		return "", errors.New("cannot resolve PowerShell profile path")
-	}
-	for _, path := range candidates {
-		if _, err := os.Stat(path); err == nil {
-			return path, nil
-		}
-	}
-	return candidates[0], nil
-}
-
 func powerShellProfileCandidates() []string {
 	home, err := hooksHomeDir()
 	if err != nil || home == "" {
@@ -198,8 +190,8 @@ func hooksHomeDir() (string, error) {
 	return os.UserHomeDir()
 }
 
-func upsertPowerShellHookBlock(content string) (string, bool, error) {
-	block := powerShellHookBlock()
+func upsertPowerShellHookBlock(content, executablePath string) (string, bool, error) {
+	block := powerShellHookBlock(executablePath)
 	if strings.Contains(content, psHookBeginMarker) && strings.Contains(content, psHookEndMarker) {
 		start := strings.Index(content, psHookBeginMarker)
 		finish := strings.Index(content, psHookEndMarker)
@@ -289,7 +281,8 @@ func writeTextFileAtomic(path, content string) error {
 	return os.Rename(tmp, path)
 }
 
-func powerShellHookBlock() string {
+func powerShellHookBlock(executablePath string) string {
+	escapedPath := strings.ReplaceAll(executablePath, "'", "''")
 	return strings.Join([]string{
 		psHookBeginMarker,
 		"if (-not $global:InfraTrackOriginalPrompt) {",
@@ -304,7 +297,7 @@ func powerShellHookBlock() string {
 		"  $infraTrackHist = Get-History -Count 1 -ErrorAction SilentlyContinue",
 		"  if ($infraTrackHist -and $infraTrackHist.Id -ne $global:InfraTrackLastHistoryId) {",
 		"    $global:InfraTrackLastHistoryId = $infraTrackHist.Id",
-		"    & infratrack hook record --command $infraTrackHist.CommandLine --exit-code $infraTrackExit --duration-ms 0 --cwd $infraTrackCwd 2>$null",
+		fmt.Sprintf("    & '%s' hook record --command $infraTrackHist.CommandLine --exit-code $infraTrackExit --duration-ms 0 --cwd $infraTrackCwd 2>$null", escapedPath),
 		"  }",
 		"  $infraTrackPrefix = \"\"",
 		"  try {",

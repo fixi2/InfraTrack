@@ -135,7 +135,7 @@ func newHooksConfigureCmd(stateStore hooks.StateStore) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().IntVar(&remindEvery, "remind-every", 20, "Print [REC] reminder every N recorded commands (0 disables reminders)")
+	cmd.Flags().IntVar(&remindEvery, "remind-every", 0, "Print [REC] reminder every N recorded commands (0 disables reminders)")
 	return cmd
 }
 
