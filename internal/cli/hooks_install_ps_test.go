@@ -9,7 +9,7 @@ func TestUpsertPowerShellHookBlock(t *testing.T) {
 	t.Parallel()
 
 	original := "function global:prompt { \"PS> \" }\n"
-	updated, changed, err := upsertPowerShellHookBlock(original)
+	updated, changed, err := upsertPowerShellHookBlock(original, "C:\\InfraTrack\\infratrack.exe")
 	if err != nil {
 		t.Fatalf("upsert block failed: %v", err)
 	}
@@ -20,7 +20,7 @@ func TestUpsertPowerShellHookBlock(t *testing.T) {
 		t.Fatal("expected markers to be present after upsert")
 	}
 
-	second, changed2, err := upsertPowerShellHookBlock(updated)
+	second, changed2, err := upsertPowerShellHookBlock(updated, "C:\\InfraTrack\\infratrack.exe")
 	if err != nil {
 		t.Fatalf("second upsert failed: %v", err)
 	}
@@ -35,7 +35,7 @@ func TestUpsertPowerShellHookBlock(t *testing.T) {
 func TestRemovePowerShellHookBlock(t *testing.T) {
 	t.Parallel()
 
-	withBlock, _, err := upsertPowerShellHookBlock("Write-Host \"hello\"\n")
+	withBlock, _, err := upsertPowerShellHookBlock("Write-Host \"hello\"\n", "C:\\InfraTrack\\infratrack.exe")
 	if err != nil {
 		t.Fatalf("upsert block failed: %v", err)
 	}
@@ -61,5 +61,24 @@ func TestReplaceBetweenMarkersMalformed(t *testing.T) {
 	_, _, err := replaceBetweenMarkers("x\n"+psHookBeginMarker+"\ny", psHookBeginMarker, psHookEndMarker, "")
 	if err == nil {
 		t.Fatal("expected malformed markers to return error")
+	}
+}
+
+func TestHooksHomeDirOverride(t *testing.T) {
+	t.Setenv("INFRATRACK_HOME_DIR", "/tmp/infratrack-test-home")
+	got, err := hooksHomeDir()
+	if err != nil {
+		t.Fatalf("hooksHomeDir failed: %v", err)
+	}
+	if got != "/tmp/infratrack-test-home" {
+		t.Fatalf("unexpected hooks home dir: %s", got)
+	}
+}
+
+func TestPowerShellHookBlockUsesAbsolutePath(t *testing.T) {
+	t.Parallel()
+	block := powerShellHookBlock("C:\\InfraTrack\\infratrack.exe")
+	if !strings.Contains(block, "& 'C:\\InfraTrack\\infratrack.exe' hook record") {
+		t.Fatalf("expected absolute executable path in hook block, got: %s", block)
 	}
 }

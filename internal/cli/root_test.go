@@ -87,6 +87,22 @@ func TestHooksCommandsExist(t *testing.T) {
 	if hookRecord == nil || hookRecord.Name() != "record" {
 		t.Fatalf("hook record command not found")
 	}
+
+	hooksInstallBash, _, err := root.Find([]string{"hooks", "install", "bash"})
+	if err != nil {
+		t.Fatalf("root.Find(hooks install bash) failed: %v", err)
+	}
+	if hooksInstallBash == nil || hooksInstallBash.Name() != "bash" {
+		t.Fatalf("hooks install bash command not found")
+	}
+
+	hooksInstallZsh, _, err := root.Find([]string{"hooks", "install", "zsh"})
+	if err != nil {
+		t.Fatalf("root.Find(hooks install zsh) failed: %v", err)
+	}
+	if hooksInstallZsh == nil || hooksInstallZsh.Name() != "zsh" {
+		t.Fatalf("hooks install zsh command not found")
+	}
 }
 
 func TestAliasCommandOutput(t *testing.T) {

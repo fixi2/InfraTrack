@@ -4,13 +4,7 @@ InfraTrack is a local-first CLI that records explicitly executed commands and ex
 
 ## Install
 
-Windows (recommended once package is approved in winget):
-
-```bash
-winget install fixi2.InfraTrack
-```
-
-Manual fallback (all platforms):
+Manual install (all platforms):
 - download the latest binary from GitHub Releases
 - run it by full path, or add an alias with `infratrack alias --shell <powershell|bash|zsh|cmd>`
 
@@ -49,6 +43,7 @@ Expected output artifact:
 - `infratrack run -- <cmd ...>` (alias: `r`) executes command and records a sanitized step.
 - `infratrack status` shows current recording state.
 - `infratrack doctor` runs local diagnostics (paths, write access, PATH hints, tool availability).
+- Hooks reminder is disabled by default (`remind-every=0`); enable it with `infratrack hooks configure --remind-every <N>`.
 - `infratrack stop` (alias: `stp`) finalizes the active session.
 - `infratrack export --last --md` (alias: `x`) exports the latest completed session to markdown.
 - `infratrack export --session <id> -f md` exports a specific completed session by id.

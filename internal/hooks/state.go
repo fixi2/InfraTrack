@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultRemindEvery = 20
+	defaultRemindEvery = 0
 )
 
 type State struct {
