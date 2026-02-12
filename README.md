@@ -7,6 +7,7 @@ InfraTrack is a local-first CLI that records explicitly executed commands and ex
 Manual install (all platforms):
 - download the latest binary from GitHub Releases
 - run it by full path, or add an alias with `infratrack alias --shell <powershell|bash|zsh|cmd>`
+- macOS is not directly tested in CI yet; `zsh` support is expected to work via POSIX-compatible hooks.
 
 ## Build
 

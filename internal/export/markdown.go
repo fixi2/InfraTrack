@@ -245,6 +245,9 @@ func detectRollback(steps []store.Step) (string, []string) {
 	seen := make(map[string]struct{})
 
 	for _, step := range steps {
+		if !isSuccessfulStep(step) {
+			continue
+		}
 		cmd := strings.ToLower(step.Command)
 		name := extractDeploymentName(cmd)
 		if name == "" {
@@ -268,6 +271,16 @@ func detectRollback(steps []store.Step) (string, []string) {
 		items = append(items, fmt.Sprintf("Suggested: `kubectl rollout undo deployment/%s`", name))
 	}
 	return "Rollback (suggested, use with caution)", items
+}
+
+func isSuccessfulStep(step store.Step) bool {
+	if step.Status != "" {
+		return strings.EqualFold(step.Status, "OK")
+	}
+	if step.ExitCode != nil {
+		return *step.ExitCode == 0
+	}
+	return false
 }
 
 func extractDeploymentName(cmd string) string {

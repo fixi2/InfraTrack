@@ -85,7 +85,7 @@ func TestDetectRollback(t *testing.T) {
 		{
 			name: "rollback suggested from rollout status deployment",
 			steps: []store.Step{
-				{Command: "kubectl rollout status deployment/api"},
+				{Command: "kubectl rollout status deployment/api", Status: "OK", ExitCode: intPtr(0)},
 			},
 			wantTitle: "Rollback (suggested, use with caution)",
 			wantItems: []string{
@@ -96,12 +96,22 @@ func TestDetectRollback(t *testing.T) {
 		{
 			name: "rollback suggested from set image deployment",
 			steps: []store.Step{
-				{Command: "kubectl set image deployment/web api=repo/app:v2"},
+				{Command: "kubectl set image deployment/web api=repo/app:v2", Status: "OK", ExitCode: intPtr(0)},
 			},
 			wantTitle: "Rollback (suggested, use with caution)",
 			wantItems: []string{
 				"Suggested: use with caution. Verify root cause and deployment revision before undo.",
 				"Suggested: `kubectl rollout undo deployment/web`",
+			},
+		},
+		{
+			name: "no rollback for failed rollout status deployment",
+			steps: []store.Step{
+				{Command: "kubectl rollout status deployment/api", Status: "FAILED", ExitCode: intPtr(1)},
+			},
+			wantTitle: "Rollback",
+			wantItems: []string{
+				"TODO: Add rollback commands.",
 			},
 		},
 		{
