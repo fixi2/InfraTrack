@@ -158,3 +158,35 @@ func TestSetupCommandShowsQuickFlowAndCancels(t *testing.T) {
 		t.Fatalf("expected cancellation output, got: %s", got)
 	}
 }
+
+func TestSetupCommandYesShowsOnlyFinalConciseMessage(t *testing.T) {
+	root, err := NewRootCommand()
+	if err != nil {
+		t.Fatalf("NewRootCommand failed: %v", err)
+	}
+
+	stateRoot := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", stateRoot)
+	t.Setenv("APPDATA", stateRoot)
+
+	binDir := t.TempDir()
+	var out bytes.Buffer
+	root.SetOut(&out)
+	root.SetErr(&out)
+	root.SetArgs([]string{"setup", "--yes", "--bin-dir", binDir, "--no-path"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("setup --yes failed: %v", err)
+	}
+
+	got := out.String()
+	if !strings.Contains(got, "Setup complete.") {
+		t.Fatalf("expected setup success output, got: %s", got)
+	}
+	if strings.Contains(got, "Binary: ") {
+		t.Fatalf("did not expect binary summary in setup output, got: %s", got)
+	}
+	if strings.Count(got, "PATH: ") != 1 {
+		t.Fatalf("expected single path line in setup output, got: %s", got)
+	}
+}

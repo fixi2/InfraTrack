@@ -64,7 +64,7 @@ func newSetupCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			printSetupApplyResult(out, result, cfg.noPath, false)
+			printSetupApplyResult(out, result, cfg.noPath, false, false)
 			return nil
 		},
 	}
@@ -190,7 +190,7 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			printSetupApplyResult(cmd.OutOrStdout(), result, cfg.noPath, verbose)
+			printSetupApplyResult(cmd.OutOrStdout(), result, cfg.noPath, verbose, true)
 			return nil
 		},
 	}
@@ -258,7 +258,7 @@ func printSetupPlan(cmd *cobra.Command, plan setup.Plan) {
 	}
 }
 
-func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool, verbose bool) {
+func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool, verbose bool, showSummary bool) {
 	if verbose {
 		fmt.Fprintln(out, "InfraTrack setup apply")
 		fmt.Fprintln(out, "---------------------")
@@ -280,11 +280,13 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 	} else {
 		fmt.Fprintln(out, "Setup complete.")
 	}
-	fmt.Fprintf(out, "Binary: %s\n", result.InstalledBinPath)
-	if noPath {
-		fmt.Fprintln(out, "PATH: unchanged (--no-path)")
-	} else {
-		fmt.Fprintln(out, "PATH: pending (will be added in the next setup phase)")
+	if showSummary {
+		fmt.Fprintf(out, "Binary: %s\n", result.InstalledBinPath)
+		if noPath {
+			fmt.Fprintln(out, "PATH: unchanged (--no-path)")
+		} else {
+			fmt.Fprintln(out, "PATH: pending (will be added in the next setup phase)")
+		}
 	}
 	fmt.Fprintln(out, "Use `infratrack setup status` for details.")
 }

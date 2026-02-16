@@ -52,7 +52,7 @@ func BuildPlan(input PlanInput) (Plan, error) {
 
 	notes := []string{
 		"Dry-run only. No changes are applied.",
-		"Run `infratrack setup apply` to execute setup changes.",
+		"Run `infratrack setup` to apply changes now, or `infratrack setup apply` for direct apply.",
 		"Restart terminal after PATH changes to pick up updates.",
 	}
 
