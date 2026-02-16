@@ -1,9 +1,11 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/fixi2/InfraTrack/internal/setup"
@@ -11,25 +13,20 @@ import (
 )
 
 func newSetupCmd() *cobra.Command {
-	var (
-		binDir        string
-		scopeText     string
-		completionRaw string
-		noPath        bool
-	)
+	cfg := &setupCommandConfig{}
 
 	cmd := &cobra.Command{
 		Use:   "setup",
 		Short: "Plan local InfraTrack installation and PATH integration",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			scope, completion, err := parseSetupInputs(scopeText, completionRaw)
+			scope, completion, err := parseSetupInputs(cfg.scopeText, cfg.completionRaw)
 			if err != nil {
 				return err
 			}
 			plan, err := setup.BuildPlan(setup.PlanInput{
 				Scope:      scope,
-				BinDir:     binDir,
-				NoPath:     noPath,
+				BinDir:     cfg.binDir,
+				NoPath:     cfg.noPath,
 				Completion: completion,
 			})
 			if err != nil {
@@ -40,29 +37,36 @@ func newSetupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&binDir, "bin-dir", "", "Install target directory for infratrack binary")
-	cmd.Flags().StringVar(&scopeText, "scope", string(setup.ScopeUser), "Setup scope: user")
-	cmd.Flags().BoolVar(&noPath, "no-path", false, "Do not modify PATH in setup plan")
-	cmd.Flags().StringVar(&completionRaw, "completion", string(setup.CompletionNone), "Completion setup mode: none")
+	cmd.PersistentFlags().StringVar(&cfg.binDir, "bin-dir", "", "Install target directory for infratrack binary")
+	cmd.PersistentFlags().StringVar(&cfg.scopeText, "scope", string(setup.ScopeUser), "Setup scope: user")
+	cmd.PersistentFlags().BoolVar(&cfg.noPath, "no-path", false, "Do not modify PATH")
+	cmd.PersistentFlags().StringVar(&cfg.completionRaw, "completion", string(setup.CompletionNone), "Completion setup mode: none")
 
-	cmd.AddCommand(newSetupStatusCmd(&binDir, &scopeText))
-	cmd.AddCommand(newSetupApplyCmd())
+	cmd.AddCommand(newSetupStatusCmd(cfg))
+	cmd.AddCommand(newSetupApplyCmd(cfg))
 	cmd.AddCommand(newSetupUndoCmd())
 	return cmd
 }
 
-func newSetupStatusCmd(parentBinDir *string, parentScope *string) *cobra.Command {
+type setupCommandConfig struct {
+	binDir        string
+	scopeText     string
+	completionRaw string
+	noPath        bool
+}
+
+func newSetupStatusCmd(cfg *setupCommandConfig) *cobra.Command {
 	var jsonOut bool
 
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Show setup status",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			scope, err := setup.ResolveScope(strings.TrimSpace(*parentScope))
+			scope, err := setup.ResolveScope(strings.TrimSpace(cfg.scopeText))
 			if err != nil {
 				return err
 			}
-			status, err := setup.BuildStatus(scope, strings.TrimSpace(*parentBinDir))
+			status, err := setup.BuildStatus(scope, strings.TrimSpace(cfg.binDir))
 			if err != nil {
 				return err
 			}
@@ -94,14 +98,67 @@ func newSetupStatusCmd(parentBinDir *string, parentScope *string) *cobra.Command
 	return cmd
 }
 
-func newSetupApplyCmd() *cobra.Command {
-	return &cobra.Command{
+func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
+	var yes bool
+
+	cmd := &cobra.Command{
 		Use:   "apply",
 		Short: "Apply setup changes",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return errors.New("setup apply is not implemented in this build yet")
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			scope, completion, err := parseSetupInputs(cfg.scopeText, cfg.completionRaw)
+			if err != nil {
+				return err
+			}
+
+			plan, err := setup.BuildPlan(setup.PlanInput{
+				Scope:      scope,
+				BinDir:     cfg.binDir,
+				NoPath:     cfg.noPath,
+				Completion: completion,
+			})
+			if err != nil {
+				return err
+			}
+			if !yes {
+				printSetupPlan(cmd, plan)
+				ok, err := confirmSetupApply(cmd)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					return nil
+				}
+			}
+
+			result, err := setup.Apply(setup.ApplyInput{
+				Scope:      scope,
+				BinDir:     cfg.binDir,
+				NoPath:     cfg.noPath,
+				Completion: completion,
+			})
+			if err != nil {
+				return err
+			}
+
+			out := cmd.OutOrStdout()
+			fmt.Fprintln(out, "InfraTrack setup apply")
+			fmt.Fprintln(out, "---------------------")
+			for i, action := range result.Actions {
+				fmt.Fprintf(out, "%d) %s\n", i+1, action)
+			}
+			if len(result.Notes) > 0 {
+				fmt.Fprintln(out, "")
+				fmt.Fprintln(out, "Notes:")
+				for _, note := range result.Notes {
+					fmt.Fprintf(out, "- %s\n", note)
+				}
+			}
+			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&yes, "yes", false, "Apply without interactive confirmation")
+	return cmd
 }
 
 func newSetupUndoCmd() *cobra.Command {
@@ -127,6 +184,17 @@ func parseSetupInputs(scopeText, completionText string) (setup.Scope, setup.Comp
 		return "", "", err
 	}
 	return scope, completion, nil
+}
+
+func confirmSetupApply(cmd *cobra.Command) (bool, error) {
+	fmt.Fprint(cmd.OutOrStdout(), "Apply setup changes? [y/N]: ")
+	reader := bufio.NewReader(cmd.InOrStdin())
+	line, err := reader.ReadString('\n')
+	if err != nil && !errors.Is(err, io.EOF) {
+		return false, fmt.Errorf("read confirmation: %w", err)
+	}
+	answer := strings.TrimSpace(strings.ToLower(line))
+	return answer == "y" || answer == "yes", nil
 }
 
 func printSetupPlan(cmd *cobra.Command, plan setup.Plan) {

@@ -39,6 +39,27 @@ type PlanInput struct {
 	Completion CompletionMode
 }
 
+type ApplyInput struct {
+	Scope            Scope
+	BinDir           string
+	NoPath           bool
+	Completion       CompletionMode
+	SourceBinaryPath string
+}
+
+type ApplyResult struct {
+	OS               string   `json:"os"`
+	Scope            Scope    `json:"scope"`
+	SourceBinaryPath string   `json:"sourceBinaryPath"`
+	TargetBinDir     string   `json:"targetBinDir"`
+	InstalledBinPath string   `json:"installedBinPath"`
+	StatePath        string   `json:"statePath"`
+	CreatedDirs      []string `json:"createdDirs,omitempty"`
+	PendingFinalize  bool     `json:"pendingFinalize"`
+	Actions          []string `json:"actions"`
+	Notes            []string `json:"notes,omitempty"`
+}
+
 type Plan struct {
 	OS               string   `json:"os"`
 	Scope            Scope    `json:"scope"`
