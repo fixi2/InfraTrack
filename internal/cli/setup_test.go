@@ -148,9 +148,6 @@ func TestSetupCommandShowsQuickFlowAndCancels(t *testing.T) {
 	}
 
 	got := out.String()
-	if !strings.Contains(got, "InfraTrack setup") {
-		t.Fatalf("expected setup header, got: %s", got)
-	}
 	if !strings.Contains(got, "Run `infratrack setup plan` for full dry-run details.") {
 		t.Fatalf("expected plan hint, got: %s", got)
 	}

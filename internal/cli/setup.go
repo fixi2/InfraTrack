@@ -35,7 +35,6 @@ func newSetupCmd() *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, "InfraTrack setup")
 			fmt.Fprintf(out, "Target binary: %s\n", plan.TargetBinaryPath)
 			if cfg.noPath {
 				fmt.Fprintln(out, "PATH: unchanged (--no-path)")
