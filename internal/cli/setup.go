@@ -110,17 +110,8 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 				return err
 			}
 
-			plan, err := setup.BuildPlan(setup.PlanInput{
-				Scope:      scope,
-				BinDir:     cfg.binDir,
-				NoPath:     cfg.noPath,
-				Completion: completion,
-			})
-			if err != nil {
-				return err
-			}
 			if !yes {
-				printSetupPlan(cmd, plan)
+				fmt.Fprintln(cmd.OutOrStdout(), "Run `infratrack setup` to review the full dry-run plan.")
 				ok, err := confirmSetupApply(cmd)
 				if err != nil {
 					return err
