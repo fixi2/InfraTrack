@@ -113,10 +113,10 @@ func TestSetupApplyYes(t *testing.T) {
 	}
 
 	got := out.String()
-	if !strings.Contains(got, "InfraTrack setup apply") {
-		t.Fatalf("expected apply header, got: %s", got)
+	if !strings.Contains(got, "Setup complete.") {
+		t.Fatalf("expected concise success output, got: %s", got)
 	}
-	if !strings.Contains(got, "Saved setup state") {
-		t.Fatalf("expected state save message, got: %s", got)
+	if !strings.Contains(got, "Use `infratrack setup status` for details.") {
+		t.Fatalf("expected follow-up status hint, got: %s", got)
 	}
 }

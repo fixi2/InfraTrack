@@ -100,6 +100,7 @@ func newSetupStatusCmd(cfg *setupCommandConfig) *cobra.Command {
 
 func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 	var yes bool
+	var verbose bool
 
 	cmd := &cobra.Command{
 		Use:   "apply",
@@ -133,22 +134,39 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, "InfraTrack setup apply")
-			fmt.Fprintln(out, "---------------------")
-			for i, action := range result.Actions {
-				fmt.Fprintf(out, "%d) %s\n", i+1, action)
-			}
-			if len(result.Notes) > 0 {
-				fmt.Fprintln(out, "")
-				fmt.Fprintln(out, "Notes:")
-				for _, note := range result.Notes {
-					fmt.Fprintf(out, "- %s\n", note)
+			if verbose {
+				fmt.Fprintln(out, "InfraTrack setup apply")
+				fmt.Fprintln(out, "---------------------")
+				for i, action := range result.Actions {
+					fmt.Fprintf(out, "%d) %s\n", i+1, action)
 				}
+				if len(result.Notes) > 0 {
+					fmt.Fprintln(out, "")
+					fmt.Fprintln(out, "Notes:")
+					for _, note := range result.Notes {
+						fmt.Fprintf(out, "- %s\n", note)
+					}
+				}
+				return nil
 			}
+
+			if result.PendingFinalize {
+				fmt.Fprintln(out, "Setup staged. Restart terminal, then run `infratrack setup apply` again.")
+			} else {
+				fmt.Fprintln(out, "Setup complete.")
+			}
+			fmt.Fprintf(out, "Binary: %s\n", result.InstalledBinPath)
+			if cfg.noPath {
+				fmt.Fprintln(out, "PATH: unchanged (--no-path)")
+			} else {
+				fmt.Fprintln(out, "PATH: pending (will be added in the next setup phase)")
+			}
+			fmt.Fprintln(out, "Use `infratrack setup status` for details.")
 			return nil
 		},
 	}
 	cmd.Flags().BoolVar(&yes, "yes", false, "Apply without interactive confirmation")
+	cmd.Flags().BoolVar(&verbose, "verbose", false, "Print detailed apply steps")
 	return cmd
 }
 
