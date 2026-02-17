@@ -239,6 +239,7 @@ func confirmSetupApply(cmd *cobra.Command) (bool, error) {
 func printSetupPlan(cmd *cobra.Command, plan setup.Plan) {
 	out := cmd.OutOrStdout()
 	fmt.Fprintln(out, "InfraTrack setup plan (dry-run)")
+	fmt.Fprintln(out, "-------------------------------")
 	fmt.Fprintln(out, "")
 
 	fmt.Fprintln(out, "Target:")
@@ -284,9 +285,12 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 		if noPath {
 			fmt.Fprintln(out, "- path  : unchanged (--no-path)")
 		} else {
-			fmt.Fprintln(out, "- path  : pending (will be added in the next setup phase)")
+			fmt.Fprintln(out, "- path  : user PATH updated")
 		}
 		fmt.Fprintln(out, "")
+	}
+	if !noPath {
+		fmt.Fprintln(out, "Restart terminal (VS Code users: reopen terminal app) to load updated PATH.")
 	}
 	fmt.Fprintln(out, "Use `infratrack setup status` for details.")
 }

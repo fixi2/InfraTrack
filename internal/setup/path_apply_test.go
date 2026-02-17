@@ -42,6 +42,10 @@ func TestEnsureWindowsUserPathConfiguredAddsEntry(t *testing.T) {
 	if res.PathEntry != binDir {
 		t.Fatalf("expected path entry %q, got %q", binDir, res.PathEntry)
 	}
+	parts := filepath.SplitList(written)
+	if len(parts) == 0 || normalizePathForCompare(parts[0]) != normalizePathForCompare(binDir) {
+		t.Fatalf("expected bin dir prepended in PATH, got %q", written)
+	}
 }
 
 func TestEnsureWindowsUserPathConfiguredNoChangeWhenPresent(t *testing.T) {
@@ -71,6 +75,30 @@ func TestEnsureWindowsUserPathConfiguredNoChangeWhenPresent(t *testing.T) {
 	}
 	if res.Changed {
 		t.Fatalf("expected changed=false")
+	}
+}
+
+func TestBuildWindowsUserPathValueDedupesAndPrepends(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("windows-only")
+	}
+
+	binDir := `C:\Users\test\AppData\Local\InfraTrack\bin`
+	current := strings.Join([]string{
+		`C:\Tools`,
+		`c:/users/test/AppData/Local/InfraTrack/bin/`,
+		`D:\Work`,
+	}, ";")
+	got := buildWindowsUserPathValue(current, binDir)
+	parts := filepath.SplitList(got)
+	if len(parts) != 3 {
+		t.Fatalf("unexpected PATH parts: %v", parts)
+	}
+	if normalizePathForCompare(parts[0]) != normalizePathForCompare(binDir) {
+		t.Fatalf("expected first part to be target, got %q", parts[0])
+	}
+	if Count := strings.Count(strings.ToLower(got), strings.ToLower(`infratrack\bin`)); Count != 1 {
+		t.Fatalf("expected single target occurrence, got %d (%q)", Count, got)
 	}
 }
 

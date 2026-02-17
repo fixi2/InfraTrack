@@ -46,9 +46,7 @@ func ensureWindowsUserPathConfigured(binDir string) (pathApplyResult, error) {
 			Action: "PATH already configured (no change).",
 		}, nil
 	}
-	parts := filepath.SplitList(current)
-	parts = append(parts, binDir)
-	next := strings.Join(parts, string(os.PathListSeparator))
+	next := buildWindowsUserPathValue(current, binDir)
 	if err := writeWindowsUserPathFn(next); err != nil {
 		return pathApplyResult{}, err
 	}
@@ -58,6 +56,24 @@ func ensureWindowsUserPathConfigured(binDir string) (pathApplyResult, error) {
 		Action:    "Added target bin dir to user PATH.",
 		Note:      "Restart terminal to load updated PATH.",
 	}, nil
+}
+
+func buildWindowsUserPathValue(current, binDir string) string {
+	parts := filepath.SplitList(current)
+	normalizedTarget := normalizePathForCompare(binDir)
+	filtered := make([]string, 0, len(parts)+1)
+	filtered = append(filtered, binDir)
+	for _, part := range parts {
+		p := strings.TrimSpace(part)
+		if p == "" {
+			continue
+		}
+		if normalizePathForCompare(p) == normalizedTarget {
+			continue
+		}
+		filtered = append(filtered, p)
+	}
+	return strings.Join(filtered, string(os.PathListSeparator))
 }
 
 func ensurePosixUserPathConfigured(binDir string) (pathApplyResult, error) {

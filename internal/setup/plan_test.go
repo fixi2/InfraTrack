@@ -72,6 +72,28 @@ func TestBuildStatusUsesState(t *testing.T) {
 	}
 }
 
+func TestBuildStatusReadsWindowsUserPath(t *testing.T) {
+	if os.PathSeparator != '\\' {
+		t.Skip("windows-only")
+	}
+
+	prevRead := readWindowsUserPathFn
+	defer func() { readWindowsUserPathFn = prevRead }()
+
+	binDir := t.TempDir()
+	readWindowsUserPathFn = func() (string, error) {
+		return strings.Join([]string{`C:\Tools`, binDir}, ";"), nil
+	}
+
+	status, err := BuildStatus(ScopeUser, binDir)
+	if err != nil {
+		t.Fatalf("BuildStatus failed: %v", err)
+	}
+	if !status.PathOK {
+		t.Fatalf("expected pathOk=true from user PATH")
+	}
+}
+
 func TestPathContainsDirNormalizesWindowsCaseAndSlashes(t *testing.T) {
 	if os.PathSeparator != '\\' {
 		t.Skip("windows-only normalization assertion")

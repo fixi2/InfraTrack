@@ -94,6 +94,13 @@ func BuildStatus(scope Scope, binDir string) (Status, error) {
 		return Status{}, err
 	}
 
+	pathValue := os.Getenv("PATH")
+	if runtime.GOOS == "windows" {
+		if userPath, readErr := readWindowsUserPathFn(); readErr == nil {
+			pathValue = userPath
+		}
+	}
+
 	return Status{
 		OS:               runtime.GOOS,
 		Scope:            scope,
@@ -101,7 +108,7 @@ func BuildStatus(scope Scope, binDir string) (Status, error) {
 		BinDir:           binDir,
 		TargetBinaryPath: targetBinary,
 		Installed:        installed,
-		PathOK:           PathContainsDir(os.Getenv("PATH"), binDir),
+		PathOK:           PathContainsDir(pathValue, binDir),
 		StateFound:       found,
 		PendingFinalize:  state.PendingFinalize,
 	}, nil
