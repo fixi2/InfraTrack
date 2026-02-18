@@ -1,0 +1,25 @@
+Capture explicit command sessions into deterministic markdown runbooks
+
+Usage:
+  infratrack [command]
+
+Available Commands:
+  alias       Print shell alias snippet (does not modify your shell config)
+  completion  Generate the autocompletion script for the specified shell
+  doctor      Run local diagnostics for InfraTrack setup
+  export      Export a completed session as markdown
+  help        Help about any command
+  hooks       Manage hooks recording mode state
+  init        Initialize local InfraTrack storage and config
+  run         Execute a command and capture sanitized metadata for the active session
+  sessions    Inspect completed sessions
+  setup       Install InfraTrack for the current user
+  start       Start a recording session
+  status      Show current InfraTrack session status
+  stop        Stop the active recording session
+  version     Print InfraTrack build version
+
+Flags:
+  -h, --help   help for infratrack
+
+Use "infratrack [command] --help" for more information about a command.

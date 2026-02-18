@@ -3,6 +3,9 @@ runbooks/
 .private-dev-docs/
 .tests/
 .gocache/
+.gotmp/
+.gomodcache/
+.tmp-*/
 *.env
 *.key
 *.pem

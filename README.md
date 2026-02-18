@@ -140,6 +140,14 @@ Run all tests:
 go test ./...
 ```
 
+Black-box contract suite:
+
+```bash
+go test ./e2e/blackbox -count=1
+```
+
+See `TESTING.md` for CI packs, volume runs, and golden update flow.
+
 ## Antivirus Note for Contributors
 
 Some antivirus products may flag temporary Go test binaries (for example `*.test.exe`) during `go test`.
