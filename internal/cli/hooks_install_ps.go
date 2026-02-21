@@ -78,12 +78,12 @@ func newHooksInstallPowerShellCmd() *cobra.Command {
 					return fmt.Errorf("write profile %s: %w", path, err)
 				}
 				if changed {
-					fmt.Fprintf(cmd.OutOrStdout(), "Installed PowerShell hooks in %s\n", path)
+					printOK(cmd.OutOrStdout(), "Installed PowerShell hooks in %s", path)
 				} else {
-					fmt.Fprintf(cmd.OutOrStdout(), "PowerShell hooks already installed in %s\n", path)
+					printWarn(cmd.OutOrStdout(), "PowerShell hooks already installed in %s", path)
 				}
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "Open a new PowerShell session to activate the hook.")
+			printHint(cmd.OutOrStdout(), "Open a new PowerShell session to activate the hook.")
 			return nil
 		},
 	}
@@ -122,11 +122,11 @@ func newHooksUninstallPowerShellCmd() *cobra.Command {
 					return fmt.Errorf("write profile %s: %w", path, err)
 				}
 				removedAny = true
-				fmt.Fprintf(cmd.OutOrStdout(), "Removed PowerShell hooks from %s\n", path)
+				printOK(cmd.OutOrStdout(), "Removed PowerShell hooks from %s", path)
 			}
 
 			if !foundAny || !removedAny {
-				fmt.Fprintln(cmd.OutOrStdout(), "No PowerShell hook block found.")
+				printWarn(cmd.OutOrStdout(), "No PowerShell hook block found.")
 			}
 			return nil
 		},

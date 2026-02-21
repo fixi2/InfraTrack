@@ -81,7 +81,7 @@ func newHooksEnableCmd(stateStore hooks.StateStore) *cobra.Command {
 			if err := stateStore.Save(cmd.Context(), state); err != nil {
 				return fmt.Errorf("save hooks state: %w", err)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "Hooks mode enabled")
+			printOK(cmd.OutOrStdout(), "Hooks mode enabled")
 			return nil
 		},
 	}
@@ -100,7 +100,7 @@ func newHooksDisableCmd(stateStore hooks.StateStore) *cobra.Command {
 			if err := stateStore.Save(cmd.Context(), state); err != nil {
 				return fmt.Errorf("save hooks state: %w", err)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "Hooks mode disabled")
+			printOK(cmd.OutOrStdout(), "Hooks mode disabled")
 			return nil
 		},
 	}
@@ -127,9 +127,9 @@ func newHooksConfigureCmd(stateStore hooks.StateStore) *cobra.Command {
 				return fmt.Errorf("save hooks state: %w", err)
 			}
 			if remindEvery == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "Updated hooks remind-every to disabled")
+				printOK(cmd.OutOrStdout(), "Updated hooks remind-every to disabled")
 			} else {
-				fmt.Fprintf(cmd.OutOrStdout(), "Updated hooks remind-every to %d\n", remindEvery)
+				printOK(cmd.OutOrStdout(), "Updated hooks remind-every to %d", remindEvery)
 			}
 			return nil
 		},

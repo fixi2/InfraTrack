@@ -94,9 +94,9 @@ func installPosixHook(cmd *cobra.Command, path, begin, end, block string) error 
 		return fmt.Errorf("write profile: %w", err)
 	}
 	if changed {
-		fmt.Fprintf(cmd.OutOrStdout(), "Installed hooks in %s\n", path)
+		printOK(cmd.OutOrStdout(), "Installed hooks in %s", path)
 	} else {
-		fmt.Fprintf(cmd.OutOrStdout(), "Hooks already installed in %s\n", path)
+		printWarn(cmd.OutOrStdout(), "Hooks already installed in %s", path)
 	}
 	fmt.Fprintln(cmd.OutOrStdout(), "Open a new shell session to activate the hook.")
 	return nil
@@ -122,7 +122,7 @@ func uninstallPosixHook(cmd *cobra.Command, path, begin, end string) error {
 	if err := writeTextFileAtomic(path, updated); err != nil {
 		return fmt.Errorf("write profile: %w", err)
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Removed hooks from %s\n", path)
+	printOK(cmd.OutOrStdout(), "Removed hooks from %s", path)
 	return nil
 }
 
