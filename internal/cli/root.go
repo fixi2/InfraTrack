@@ -64,7 +64,7 @@ func newInitCmd(s store.SessionStore) *cobra.Command {
 				return fmt.Errorf("initialize storage: %w", err)
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Initialized InfraTrack at %s\n", s.RootDir())
+			printOK(cmd.OutOrStdout(), "Initialized InfraTrack at %s", s.RootDir())
 			return nil
 		},
 	}
@@ -97,16 +97,16 @@ func newStartCmd(s store.SessionStore) *cobra.Command {
 			}
 
 			if session.Env != "" {
-				fmt.Fprintf(
+				printOK(
 					cmd.OutOrStdout(),
-					"Started session %q (env: %s) at %s\n",
+					"Started session %q (env: %s) at %s",
 					session.Title,
 					session.Env,
 					session.StartedAt.Format(time.RFC3339),
 				)
 				return nil
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Started session %q at %s\n", session.Title, session.StartedAt.Format(time.RFC3339))
+			printOK(cmd.OutOrStdout(), "Started session %q at %s", session.Title, session.StartedAt.Format(time.RFC3339))
 			return nil
 		},
 	}
@@ -130,9 +130,9 @@ func newStopCmd(s store.SessionStore) *cobra.Command {
 				return fmt.Errorf("stop session: %w", err)
 			}
 
-			fmt.Fprintf(
+			printOK(
 				cmd.OutOrStdout(),
-				"Stopped session %q with %d recorded step(s)\n",
+				"Stopped session %q with %d recorded step(s)",
 				session.Title,
 				len(session.Steps),
 			)
@@ -228,9 +228,9 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 			if runErr != nil {
 				if result.Reason == "command_not_found" && runtime.GOOS == "windows" {
 					if isWindowsShellBuiltin(args[0]) {
-						fmt.Fprintf(
+						printHint(
 							cmd.ErrOrStderr(),
-							"Hint: %q is a Windows shell builtin. Try `infratrack run -- cmd /c %s`.\n",
+							"%q is a Windows shell builtin. Try `infratrack run -- cmd /c %s`.",
 							args[0],
 							sanitized.Command,
 						)
@@ -243,9 +243,9 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 				}
 			}
 
-			fmt.Fprintf(
+			printOK(
 				cmd.OutOrStdout(),
-				"Recorded step (%d ms, exit %s)\n",
+				"Recorded step (%d ms, exit %s)",
 				step.DurationMS,
 				formatExitCode(step.ExitCode),
 			)
@@ -346,7 +346,7 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 				return fmt.Errorf("export markdown: %w", err)
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Exported runbook: %s\n", outPath)
+			printOK(cmd.OutOrStdout(), "Exported runbook: %s", outPath)
 			return nil
 		},
 	}

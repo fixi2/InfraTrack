@@ -51,7 +51,7 @@ func newSetupCmd() *cobra.Command {
 					return err
 				}
 				if !ok {
-					fmt.Fprintln(out, "Cancelled.")
+					printWarn(out, "Cancelled.")
 					return nil
 				}
 			}
@@ -171,13 +171,13 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 			}
 
 			if !yes {
-				fmt.Fprintln(cmd.OutOrStdout(), "Run `infratrack setup plan` to review the full dry-run plan.")
+				printHint(cmd.OutOrStdout(), "Run `infratrack setup plan` to review the full dry-run plan.")
 				ok, err := confirmSetupApply(cmd)
 				if err != nil {
 					return err
 				}
 				if !ok {
-					fmt.Fprintln(cmd.OutOrStdout(), "Cancelled.")
+					printWarn(cmd.OutOrStdout(), "Cancelled.")
 					return nil
 				}
 			}
@@ -211,10 +211,10 @@ func newSetupUndoCmd() *cobra.Command {
 			}
 			out := cmd.OutOrStdout()
 			if !result.Changed {
-				fmt.Fprintln(out, "Nothing to undo.")
+				printWarn(out, "Nothing to undo.")
 				return nil
 			}
-			fmt.Fprintln(out, "[OK] Setup changes reverted")
+			printOK(out, "Setup changes reverted")
 			for _, action := range result.Actions {
 				fmt.Fprintf(out, "- %s\n", action)
 			}
@@ -286,12 +286,12 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 	}
 
 	if result.PendingFinalize {
-		fmt.Fprintln(out, "[WARN] Setup staged")
+		printWarn(out, "Setup staged")
 		fmt.Fprintln(out, "Current binary is in use. Restart terminal and run:")
 		fmt.Fprintln(out, "  infratrack setup apply")
 		return
 	} else {
-		fmt.Fprintln(out, "[OK] Setup complete")
+		printOK(out, "Setup complete")
 	}
 	if showSummary {
 		fmt.Fprintf(out, "- binary: %s\n", result.InstalledBinPath)
@@ -303,9 +303,9 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 		fmt.Fprintln(out, "")
 	}
 	if !noPath {
-		fmt.Fprintln(out, "Restart terminal to load updated PATH.")
+		printHint(out, "Restart terminal to load updated PATH.")
 	}
-	fmt.Fprintln(out, "Use `infratrack setup status` for details.")
+	printHint(out, "Use `infratrack setup status` for details.")
 }
 
 func statusWord(v bool) string {

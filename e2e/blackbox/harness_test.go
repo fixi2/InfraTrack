@@ -127,8 +127,8 @@ func parseRunbookPath(output string) string {
 	const prefix = "Exported runbook: "
 	for _, line := range strings.Split(output, "\n") {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, prefix) {
-			return strings.TrimSpace(strings.TrimPrefix(line, prefix))
+		if idx := strings.Index(line, prefix); idx >= 0 {
+			return strings.TrimSpace(line[idx+len(prefix):])
 		}
 	}
 	return ""

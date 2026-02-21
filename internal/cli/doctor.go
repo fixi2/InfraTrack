@@ -23,7 +23,7 @@ func newDoctorCmd(s store.SessionStore) *cobra.Command {
 			activeSessionPath := filepath.Join(root, "active_session.json")
 
 			fmt.Fprintln(cmd.OutOrStdout(), "InfraTrack doctor")
-			fmt.Fprintln(cmd.OutOrStdout(), "")
+			fmt.Fprintln(cmd.OutOrStdout())
 			fmt.Fprintf(cmd.OutOrStdout(), "OS: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 			fmt.Fprintf(cmd.OutOrStdout(), "Root dir: %s\n", root)
 			fmt.Fprintf(cmd.OutOrStdout(), "Config file: %s\n", configPath)
@@ -35,24 +35,25 @@ func newDoctorCmd(s store.SessionStore) *cobra.Command {
 				return fmt.Errorf("doctor: check initialization: %w", err)
 			}
 			if initialized {
-				fmt.Fprintln(cmd.OutOrStdout(), "Initialization: OK")
+				printOK(cmd.OutOrStdout(), "Initialization: OK")
 			} else {
-				fmt.Fprintln(cmd.OutOrStdout(), "Initialization: NOT INITIALIZED (run `infratrack init`)")
+				printWarn(cmd.OutOrStdout(), "Initialization: NOT INITIALIZED")
+				printHint(cmd.OutOrStdout(), "Run `infratrack init`.")
 			}
 
 			if err := ensureWritable(root); err != nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "Writable check: FAILED (%v)\n", err)
+				printError(cmd.OutOrStdout(), "Writable check: FAILED (%v)", err)
 			} else {
-				fmt.Fprintln(cmd.OutOrStdout(), "Writable check: OK")
+				printOK(cmd.OutOrStdout(), "Writable check: OK")
 			}
 
 			if path, err := exec.LookPath("infratrack"); err != nil {
-				fmt.Fprintln(cmd.OutOrStdout(), "Command lookup (`infratrack`): NOT FOUND in PATH")
+				printWarn(cmd.OutOrStdout(), "Command lookup (`infratrack`): NOT FOUND in PATH")
 				if runtime.GOOS == "windows" {
-					fmt.Fprintln(cmd.OutOrStdout(), "Hint (Windows): if installed with winget, open a new terminal session.")
+					printHint(cmd.OutOrStdout(), "If installed with winget, open a new terminal session.")
 				}
 			} else {
-				fmt.Fprintf(cmd.OutOrStdout(), "Command lookup (`infratrack`): OK (%s)\n", path)
+				printOK(cmd.OutOrStdout(), "Command lookup (`infratrack`): OK (%s)", path)
 			}
 
 			if runtime.GOOS == "windows" {
