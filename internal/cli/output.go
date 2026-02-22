@@ -24,6 +24,10 @@ func printHint(out io.Writer, format string, args ...any) {
 	printHints(out, fmt.Sprintf(format, args...))
 }
 
+func printTips(out io.Writer, tips ...string) {
+	printHints(out, tips...)
+}
+
 type messageRole int
 
 const (
@@ -66,12 +70,13 @@ func printHints(out io.Writer, hints ...string) {
 		return
 	}
 
-	fmt.Fprintln(out, "Hint:")
 	if len(filtered) == 1 {
+		fmt.Fprintln(out, "Tip:")
 		fmt.Fprintf(out, "   %s\n", filtered[0])
 		return
 	}
 
+	fmt.Fprintln(out, "Tips:")
 	arrow := "->"
 	if supportsUnicode(out) {
 		arrow = "\u2192"
@@ -101,7 +106,7 @@ func roleASCII(role messageRole) string {
 	case roleError:
 		return "[ERROR]"
 	default:
-		return "Hint:"
+		return "Tip:"
 	}
 }
 

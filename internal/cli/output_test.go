@@ -21,7 +21,7 @@ func TestOutputRolesNonTTYASCII(t *testing.T) {
 		"[OK] ok message",
 		"[WARN] warn message",
 		"[ERROR] error message",
-		"Hint:\n   hint message",
+		"Tip:\n   hint message",
 	} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("expected output to contain %q, got:\n%s", want, got)
@@ -51,8 +51,8 @@ func TestPrintHintsMultiUsesArrows(t *testing.T) {
 	var out bytes.Buffer
 	printHints(&out, "first", "second")
 	got := out.String()
-	if !strings.Contains(got, "Hint:\n") {
-		t.Fatalf("expected Hint header, got:\n%s", got)
+	if !strings.Contains(got, "Tips:\n") {
+		t.Fatalf("expected Tips header, got:\n%s", got)
 	}
 	if !strings.Contains(got, "   -> first\n") {
 		t.Fatalf("expected ASCII arrow hint line, got:\n%s", got)

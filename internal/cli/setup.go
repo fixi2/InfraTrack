@@ -310,10 +310,12 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 		}
 		fmt.Fprintln(out, "")
 	}
+	tips := make([]string, 0, 2)
 	if !noPath {
-		printHint(out, "Restart terminal to load updated PATH.")
+		tips = append(tips, "Restart terminal to load updated PATH.")
 	}
-	printHint(out, "Use `infratrack setup status` for details.")
+	tips = append(tips, "Use `infratrack setup status` for details.")
+	printTips(out, tips...)
 }
 
 func statusWord(v bool) string {
