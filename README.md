@@ -56,6 +56,23 @@ infratrack x -l -f md
 Expected output artifact:
 - `runbooks/<timestamp>-<slug>.md`
 
+## Shortest Path to Runbook
+
+Already installed and initialized:
+
+```bash
+infratrack s "my runbook session"
+infratrack r -- <your command>
+infratrack stp
+infratrack x -l -f md
+```
+
+First run only (one extra command):
+
+```bash
+infratrack i
+```
+
 ## CLI Commands
 
 - `infratrack init` (alias: `i`) initializes local config and session storage in `os.UserConfigDir()/infratrack`.
@@ -68,7 +85,6 @@ Expected output artifact:
 - `infratrack run -- <cmd ...>` (alias: `r`) executes command and records a sanitized step.
 - `infratrack status` shows current recording state.
 - `infratrack doctor` runs local diagnostics (paths, write access, PATH hints, tool availability).
-- Hooks reminder is disabled by default (`remind-every=0`); enable it with `infratrack hooks configure --remind-every <N>`.
 - `infratrack stop` (alias: `stp`) finalizes the active session.
 - `infratrack export --last --md` (alias: `x`) exports the latest completed session to markdown.
 - `infratrack export --session <id> -f md` exports a specific completed session by id.
@@ -76,6 +92,40 @@ Expected output artifact:
 - `infratrack alias --shell <powershell|bash|zsh|cmd>` prints alias snippet for `it` (no system changes).
 - `infratrack version` (alias: `v`) prints build version metadata.
 - Short flags: `export --last/-l`, `export --format/-f md`; `--md` remains supported for compatibility.
+
+## Optional: Shell Hooks (Faster Workflow)
+
+Hooks make command capture feel natural in daily shell usage.
+Hooks automatically capture commands between start and stop, so you don't need to prefix each command with infratrack run.
+
+PowerShell:
+
+```bash
+infratrack hooks install powershell --yes
+infratrack hooks status
+```
+
+Bash:
+
+```bash
+infratrack hooks install bash
+infratrack hooks status
+```
+
+Zsh:
+
+```bash
+infratrack hooks install zsh
+infratrack hooks status
+```
+
+Remove hooks at any time:
+
+```bash
+infratrack hooks uninstall powershell
+infratrack hooks uninstall bash
+infratrack hooks uninstall zsh
+```
 
 ## Windows Shell Builtins
 
@@ -154,6 +204,7 @@ go test ./e2e/blackbox -count=1
 ```
 
 See `TESTING.md` for CI packs, volume runs, and golden update flow.
+UX behavior contract: `docs/testing/ux-contract.md`.
 
 ## Antivirus Note for Contributors
 

@@ -50,6 +50,33 @@ Review every golden update in PR.
 
 ## CI Packs
 
-- PR: fast black-box contract pack (target <= 12 minutes)
-- Nightly: full black-box + volume 10k (target <= 35 minutes)
+- PR: fast black-box contract pack + UX output pack + runbook readability pack (target <= 12 minutes)
+- Nightly: full black-box + volume 10k + UX packs (target <= 35 minutes)
 - Release soak: black-box volume/soak suite with explicit trigger (target <= 60 minutes)
+
+## UX Packs (Local)
+
+Build once:
+
+```powershell
+go build -o .\infratrack.exe ./cmd/infratrack
+```
+
+UX output pack (tips/labels/setup output contract):
+
+```powershell
+go test ./internal/cli -count=1 -run "TestOutputRolesNonTTYASCII|TestPrintHintsMultiUsesArrows|TestRunWithSpinnerNonTTY"
+```
+
+Runbook readability pack (summary counters/snippets/reviewer notes):
+
+```powershell
+go test ./internal/export -count=1 -run "TestRenderMarkdownGolden|TestRenderMarkdownWithOptionsComments|TestRenderMarkdownWithMultipleReviewerNotes|TestRenderMarkdownSummaryCountsInlineRedaction|TestStepTitleSnippetTruncatesLongCommand"
+```
+
+UX black-box readability check:
+
+```powershell
+$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+go test ./e2e/blackbox -count=1 -run "TestGoldenRunbookSkeleton|TestGoldenHelpOutput|TestSecretsAndDenylistDoNotLeakToRunbook"
+```

@@ -20,6 +20,7 @@ Available Commands:
   version     Print InfraTrack build version
 
 Flags:
-  -h, --help   help for infratrack
+  -h, --help       help for infratrack
+      --no-color   Disable colored command output
 
 Use "infratrack [command] --help" for more information about a command.
