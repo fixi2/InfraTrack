@@ -32,9 +32,14 @@ func NewRootCommand() (*cobra.Command, error) {
 		Use:   "infratrack",
 		Short: "Capture explicit command sessions into deterministic markdown runbooks",
 	}
+	var noColor bool
 
 	rootCmd.SilenceUsage = true
 	rootCmd.SilenceErrors = true
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		configureOutput(noColor)
+	}
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored command output")
 	rootCmd.AddCommand(
 		newInitCmd(s),
 		newSetupCmd(),
@@ -341,7 +346,12 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 				opts = promptForExportAnnotations(cmd.InOrStdin(), cmd.OutOrStdout(), session)
 			}
 
-			outPath, err := export.WriteMarkdownWithOptions(session, workingDir, opts)
+			var outPath string
+			err = runWithSpinner(cmd.ErrOrStderr(), "Exporting runbook...", func() error {
+				var exportErr error
+				outPath, exportErr = export.WriteMarkdownWithOptions(session, workingDir, opts)
+				return exportErr
+			})
 			if err != nil {
 				return fmt.Errorf("export markdown: %w", err)
 			}

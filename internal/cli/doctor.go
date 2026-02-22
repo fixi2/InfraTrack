@@ -22,7 +22,7 @@ func newDoctorCmd(s store.SessionStore) *cobra.Command {
 			sessionsPath := filepath.Join(root, "sessions.jsonl")
 			activeSessionPath := filepath.Join(root, "active_session.json")
 
-			fmt.Fprintln(cmd.OutOrStdout(), "InfraTrack doctor")
+			fmt.Fprintln(cmd.OutOrStdout(), "=== Doctor ===")
 			fmt.Fprintln(cmd.OutOrStdout())
 			fmt.Fprintf(cmd.OutOrStdout(), "OS: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 			fmt.Fprintf(cmd.OutOrStdout(), "Root dir: %s\n", root)
@@ -35,46 +35,70 @@ func newDoctorCmd(s store.SessionStore) *cobra.Command {
 				return fmt.Errorf("doctor: check initialization: %w", err)
 			}
 			if initialized {
-				printOK(cmd.OutOrStdout(), "Initialization: OK")
+				if supportsUnicode(cmd.OutOrStdout()) {
+					printOK(cmd.OutOrStdout(), "Initialization")
+				} else {
+					fmt.Fprintln(cmd.OutOrStdout(), "Initialization: OK")
+				}
 			} else {
-				printWarn(cmd.OutOrStdout(), "Initialization: NOT INITIALIZED")
+				if supportsUnicode(cmd.OutOrStdout()) {
+					printWarn(cmd.OutOrStdout(), "Initialization: not initialized")
+				} else {
+					fmt.Fprintln(cmd.OutOrStdout(), "Initialization: NOT INITIALIZED")
+				}
 				printHint(cmd.OutOrStdout(), "Run `infratrack init`.")
 			}
 
 			if err := ensureWritable(root); err != nil {
-				printError(cmd.OutOrStdout(), "Writable check: FAILED (%v)", err)
+				if supportsUnicode(cmd.OutOrStdout()) {
+					printError(cmd.OutOrStdout(), "Writable check failed (%v)", err)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "Writable check: FAILED (%v)\n", err)
+				}
 			} else {
-				printOK(cmd.OutOrStdout(), "Writable check: OK")
+				if supportsUnicode(cmd.OutOrStdout()) {
+					printOK(cmd.OutOrStdout(), "Writable check")
+				} else {
+					fmt.Fprintln(cmd.OutOrStdout(), "Writable check: OK")
+				}
 			}
 
 			if path, err := exec.LookPath("infratrack"); err != nil {
-				printWarn(cmd.OutOrStdout(), "Command lookup (`infratrack`): NOT FOUND in PATH")
+				if supportsUnicode(cmd.OutOrStdout()) {
+					printWarn(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: no")
+				} else {
+					fmt.Fprintln(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: NO")
+				}
 				if runtime.GOOS == "windows" {
 					printHint(cmd.OutOrStdout(), "If installed with winget, open a new terminal session.")
 				}
 			} else {
-				printOK(cmd.OutOrStdout(), "Command lookup (`infratrack`): OK (%s)", path)
+				if supportsUnicode(cmd.OutOrStdout()) {
+					printOK(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: yes (%s)", path)
+				} else {
+					fmt.Fprintf(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: YES (%s)\n", path)
+				}
 			}
 
 			if runtime.GOOS == "windows" {
 				localAppData := os.Getenv("LOCALAPPDATA")
 				if localAppData != "" {
 					windowsApps := filepath.Join(localAppData, "Microsoft", "WindowsApps")
-					if !pathContainsDir(os.Getenv("PATH"), windowsApps) {
-						fmt.Fprintf(cmd.OutOrStdout(), "WindowsApps PATH check: MISSING (%s)\n", windowsApps)
-						fmt.Fprintln(cmd.OutOrStdout(), "Hint: add WindowsApps to PATH or reinstall App Installer.")
+					if pathContainsDir(os.Getenv("PATH"), windowsApps) {
+						fmt.Fprintln(cmd.OutOrStdout(), "WindowsApps in PATH: yes")
 					} else {
-						fmt.Fprintln(cmd.OutOrStdout(), "WindowsApps PATH check: OK")
+						fmt.Fprintln(cmd.OutOrStdout(), "WindowsApps in PATH: no")
+						printHint(cmd.OutOrStdout(), "Add WindowsApps to PATH or reinstall App Installer.")
 					}
 				}
 			}
 
-			fmt.Fprintln(cmd.OutOrStdout(), "Tool availability:")
+			fmt.Fprintln(cmd.OutOrStdout(), "=== Tool Availability ===")
 			for _, tool := range []string{"kubectl", "docker", "terraform"} {
 				if path, err := exec.LookPath(tool); err != nil {
-					fmt.Fprintf(cmd.OutOrStdout(), "- %s: MISSING\n", tool)
+					fmt.Fprintf(cmd.OutOrStdout(), "- %s (optional): MISSING\n", tool)
 				} else {
-					fmt.Fprintf(cmd.OutOrStdout(), "- %s: OK (%s)\n", tool, path)
+					fmt.Fprintf(cmd.OutOrStdout(), "- %s (optional): OK (%s)\n", tool, path)
 				}
 			}
 

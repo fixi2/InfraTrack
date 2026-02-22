@@ -45,9 +45,9 @@ func TestDoctorCommandOutput(t *testing.T) {
 
 	text := out.String()
 	for _, want := range []string{
-		"InfraTrack doctor",
+		"=== Doctor ===",
 		"Root dir:",
-		"Tool availability:",
+		"=== Tool Availability ===",
 	} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("doctor output missing %q in %q", want, text)

@@ -56,11 +56,16 @@ func newSetupCmd() *cobra.Command {
 				}
 			}
 
-			result, err := setup.Apply(setup.ApplyInput{
-				Scope:      scope,
-				BinDir:     cfg.binDir,
-				NoPath:     cfg.noPath,
-				Completion: completion,
+			var result setup.ApplyResult
+			err = runWithSpinner(cmd.ErrOrStderr(), "Applying setup changes...", func() error {
+				var applyErr error
+				result, applyErr = setup.Apply(setup.ApplyInput{
+					Scope:      scope,
+					BinDir:     cfg.binDir,
+					NoPath:     cfg.noPath,
+					Completion: completion,
+				})
+				return applyErr
 			})
 			if err != nil {
 				return err
@@ -113,8 +118,7 @@ func newSetupStatusCmd(cfg *setupCommandConfig) *cobra.Command {
 			}
 
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, "InfraTrack setup status")
-			fmt.Fprintln(out, "----------------------")
+			fmt.Fprintln(out, "=== Setup Status ===")
 			fmt.Fprintf(out, "OS                 : %s\n", status.OS)
 			fmt.Fprintf(out, "Scope              : %s\n", status.Scope)
 			fmt.Fprintf(out, "Current executable : %s\n", status.CurrentExe)
@@ -182,11 +186,16 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 				}
 			}
 
-			result, err := setup.Apply(setup.ApplyInput{
-				Scope:      scope,
-				BinDir:     cfg.binDir,
-				NoPath:     cfg.noPath,
-				Completion: completion,
+			var result setup.ApplyResult
+			err = runWithSpinner(cmd.ErrOrStderr(), "Applying setup changes...", func() error {
+				var applyErr error
+				result, applyErr = setup.Apply(setup.ApplyInput{
+					Scope:      scope,
+					BinDir:     cfg.binDir,
+					NoPath:     cfg.noPath,
+					Completion: completion,
+				})
+				return applyErr
 			})
 			if err != nil {
 				return err
@@ -251,8 +260,7 @@ func confirmSetupApply(cmd *cobra.Command) (bool, error) {
 
 func printSetupPlan(cmd *cobra.Command, plan setup.Plan) {
 	out := cmd.OutOrStdout()
-	fmt.Fprintln(out, "InfraTrack setup plan (dry-run)")
-	fmt.Fprintln(out, "-------------------------------")
+	fmt.Fprintln(out, "=== Setup Plan (Dry Run) ===")
 	fmt.Fprintln(out, "")
 
 	fmt.Fprintln(out, "Target:")

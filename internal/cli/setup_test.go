@@ -69,7 +69,7 @@ func TestSetupPlanOutput(t *testing.T) {
 		t.Fatalf("setup plan failed: %v", err)
 	}
 	got := out.String()
-	if !strings.Contains(got, "InfraTrack setup plan (dry-run)") {
+	if !strings.Contains(got, "=== Setup Plan (Dry Run) ===") {
 		t.Fatalf("expected dry-run title, got: %s", got)
 	}
 	if !strings.Contains(got, "Actions:") {

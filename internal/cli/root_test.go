@@ -188,4 +188,28 @@ func TestShortFlags(t *testing.T) {
 	if exportCmd.Flags().Lookup("no-annotate") == nil {
 		t.Fatalf("flag --no-annotate is not configured for export")
 	}
+	if root.PersistentFlags().Lookup("no-color") == nil {
+		t.Fatalf("persistent flag --no-color is not configured")
+	}
+}
+
+func TestNoColorFlagAccepted(t *testing.T) {
+	t.Parallel()
+
+	root, err := NewRootCommand()
+	if err != nil {
+		t.Fatalf("NewRootCommand failed: %v", err)
+	}
+
+	var out bytes.Buffer
+	root.SetOut(&out)
+	root.SetErr(&out)
+	root.SetArgs([]string{"--no-color", "version"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("expected --no-color to be accepted, got error: %v", err)
+	}
+	if !strings.Contains(out.String(), "InfraTrack") {
+		t.Fatalf("unexpected output: %s", out.String())
+	}
 }

@@ -90,7 +90,7 @@ func promptForExportAnnotations(in io.Reader, out io.Writer, session *store.Sess
 	globalComments := make([]string, 0, 2)
 
 	for {
-		fmt.Fprintln(out, "Flagged steps:")
+		fmt.Fprintln(out, "=== Flagged Steps ===")
 		fmt.Fprintln(out, "[0] Global comment for all flagged steps")
 		for _, f := range flagged {
 			fmt.Fprintf(out, "[%d] [%s] %s\n", f.Number, strings.Join(f.Labels, ", "), f.Command)
