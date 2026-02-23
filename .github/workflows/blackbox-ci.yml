@@ -113,4 +113,4 @@ jobs:
           IT_BLACKBOX_VOLUME_COUNT: "10000"
         run: |
           go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
-          go test ./e2e/blackbox -count=1 -timeout 20m
+          go test ./e2e/blackbox -count=1 -timeout 20m -run "TestCLIHelpAndVersionContract|TestUnknownCommandContract|TestSessionLifecycleBlackBox|TestExportLastEqualsExportSessionID|TestGoldenHelpOutput|TestGoldenRunbookSkeleton|TestHooksInstallUninstallIdempotentOnTempProfile|TestHookRecorderAntiRecursion|TestAliasAndFullCommandsEquivalent|TestEquivalentExportFlags|TestSecretsAndDenylistDoNotLeakToRunbook|TestRandomSentinelNeverAppearsInArtifacts|TestSetupLifecycleContract"

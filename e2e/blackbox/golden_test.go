@@ -3,6 +3,7 @@ package blackbox
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -19,9 +20,13 @@ func assertGolden(t *testing.T, goldenPath string, got string) {
 	if err != nil {
 		t.Fatalf("read golden %s: %v", goldenAbs, err)
 	}
-	if string(wantBytes) != got {
+	if normalizeGoldenNewlines(string(wantBytes)) != normalizeGoldenNewlines(got) {
 		t.Fatalf("golden mismatch for %s", goldenPath)
 	}
+}
+
+func normalizeGoldenNewlines(s string) string {
+	return strings.ReplaceAll(s, "\r\n", "\n")
 }
 
 // Contract: C4

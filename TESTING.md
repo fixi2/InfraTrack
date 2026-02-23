@@ -35,6 +35,15 @@ $env:IT_BLACKBOX_VOLUME_COUNT = "10000"
 go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
 ```
 
+Release soak local (avoid double-running volume under a short timeout):
+
+```powershell
+$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:IT_BLACKBOX_VOLUME_COUNT = "10000"
+go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
+go test ./e2e/blackbox -count=1 -timeout 20m -run "TestCLIHelpAndVersionContract|TestUnknownCommandContract|TestSessionLifecycleBlackBox|TestExportLastEqualsExportSessionID|TestGoldenHelpOutput|TestGoldenRunbookSkeleton|TestHooksInstallUninstallIdempotentOnTempProfile|TestHookRecorderAntiRecursion|TestAliasAndFullCommandsEquivalent|TestEquivalentExportFlags|TestSecretsAndDenylistDoNotLeakToRunbook|TestRandomSentinelNeverAppearsInArtifacts|TestSetupLifecycleContract"
+```
+
 ## Golden Files
 
 Golden files live in `e2e/blackbox/testdata`.
