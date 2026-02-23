@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -201,6 +203,51 @@ func TestJSONStoreLastSessionLargeRecord(t *testing.T) {
 	}
 	if last.Steps[0].Command != largeCmd {
 		t.Fatalf("unexpected command payload length: got %d want %d", len(last.Steps[0].Command), len(largeCmd))
+	}
+}
+
+func TestJSONStoreAddStepConcurrentNoLostUpdates(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	root := newRetryTempDir(t)
+	s := NewJSONStore(root)
+	if err := s.Init(ctx); err != nil {
+		t.Fatalf("init failed: %v", err)
+	}
+
+	start := time.Date(2026, 2, 20, 12, 0, 0, 0, time.UTC)
+	if _, err := s.StartSession(ctx, "Concurrent steps", "", start); err != nil {
+		t.Fatalf("start session failed: %v", err)
+	}
+
+	const total = 100
+	var wg sync.WaitGroup
+	wg.Add(total)
+	for i := 0; i < total; i++ {
+		i := i
+		go func() {
+			defer wg.Done()
+			err := s.AddStep(ctx, Step{
+				Timestamp:  start.Add(time.Duration(i+1) * time.Second),
+				Command:    "echo step-" + strconv.Itoa(i),
+				Status:     "OK",
+				ExitCode:   intPtr(0),
+				DurationMS: int64(i + 1),
+			})
+			if err != nil {
+				t.Errorf("add step %d failed: %v", i, err)
+			}
+		}()
+	}
+	wg.Wait()
+
+	active, err := s.GetActiveSession(ctx)
+	if err != nil {
+		t.Fatalf("get active session failed: %v", err)
+	}
+	if got := len(active.Steps); got != total {
+		t.Fatalf("unexpected step count: got %d want %d", got, total)
 	}
 }
 

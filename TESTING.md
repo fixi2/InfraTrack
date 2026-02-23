@@ -7,6 +7,12 @@ Every e2e black-box test enforces one or more contract items.
 
 ## Local Runs
 
+Enable local Go cache/temp first (recommended on Windows with AV):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\.tests\use-local-go-cache.ps1
+```
+
 Build binary once:
 
 ```powershell

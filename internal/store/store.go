@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -97,27 +98,34 @@ func (s *JSONStore) StartSession(_ context.Context, title, env string, startedAt
 		return nil, err
 	}
 
-	_, err := os.Stat(s.activeStatePath)
-	if err == nil {
-		return nil, ErrActiveSessionExists
-	}
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("check active state: %w", err)
+	var started *Session
+	if err := s.withActiveStateLock(func() error {
+		_, err := os.Stat(s.activeStatePath)
+		if err == nil {
+			return ErrActiveSessionExists
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("check active state: %w", err)
+		}
+
+		session := &Session{
+			ID:        fmt.Sprintf("%d", startedAt.UnixNano()),
+			Title:     strings.TrimSpace(title),
+			Env:       strings.TrimSpace(env),
+			StartedAt: startedAt.UTC(),
+			Steps:     make([]Step, 0, 8),
+		}
+
+		if err := s.writeJSONAtomic(s.activeStatePath, session); err != nil {
+			return fmt.Errorf("write active session: %w", err)
+		}
+		started = session
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
-	session := &Session{
-		ID:        fmt.Sprintf("%d", startedAt.UnixNano()),
-		Title:     strings.TrimSpace(title),
-		Env:       strings.TrimSpace(env),
-		StartedAt: startedAt.UTC(),
-		Steps:     make([]Step, 0, 8),
-	}
-
-	if err := s.writeJSONAtomic(s.activeStatePath, session); err != nil {
-		return nil, fmt.Errorf("write active session: %w", err)
-	}
-
-	return session, nil
+	return started, nil
 }
 
 func (s *JSONStore) GetActiveSession(_ context.Context) (*Session, error) {
@@ -137,17 +145,19 @@ func (s *JSONStore) AddStep(_ context.Context, step Step) error {
 		return err
 	}
 
-	session, err := s.readActive()
-	if err != nil {
-		return err
-	}
+	return s.withActiveStateLock(func() error {
+		session, err := s.readActive()
+		if err != nil {
+			return err
+		}
 
-	session.Steps = append(session.Steps, step)
-	if err := s.writeJSONAtomic(s.activeStatePath, session); err != nil {
-		return fmt.Errorf("persist active session: %w", err)
-	}
+		session.Steps = append(session.Steps, step)
+		if err := s.writeJSONAtomic(s.activeStatePath, session); err != nil {
+			return fmt.Errorf("persist active session: %w", err)
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func (s *JSONStore) StopSession(_ context.Context, endedAt time.Time) (*Session, error) {
@@ -155,23 +165,31 @@ func (s *JSONStore) StopSession(_ context.Context, endedAt time.Time) (*Session,
 		return nil, err
 	}
 
-	session, err := s.readActive()
-	if err != nil {
+	var stopped *Session
+	if err := s.withActiveStateLock(func() error {
+		session, err := s.readActive()
+		if err != nil {
+			return err
+		}
+
+		end := endedAt.UTC()
+		session.EndedAt = &end
+
+		if err := s.appendCompleted(session); err != nil {
+			return fmt.Errorf("append completed session: %w", err)
+		}
+
+		if err := os.Remove(s.activeStatePath); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("remove active state: %w", err)
+		}
+
+		stopped = session
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
-	end := endedAt.UTC()
-	session.EndedAt = &end
-
-	if err := s.appendCompleted(session); err != nil {
-		return nil, fmt.Errorf("append completed session: %w", err)
-	}
-
-	if err := os.Remove(s.activeStatePath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("remove active state: %w", err)
-	}
-
-	return session, nil
+	return stopped, nil
 }
 
 func (s *JSONStore) LastSession(_ context.Context) (*Session, error) {
@@ -397,20 +415,77 @@ func (s *JSONStore) writeJSONAtomic(path string, value any) error {
 		_ = tmpFile.Close()
 		return fmt.Errorf("write temp file: %w", err)
 	}
+	if err := tmpFile.Sync(); err != nil {
+		_ = tmpFile.Close()
+		return fmt.Errorf("sync temp file: %w", err)
+	}
 	if err := tmpFile.Close(); err != nil {
 		return fmt.Errorf("close temp file: %w", err)
 	}
 
 	var lastErr error
 	for i := 0; i < 6; i++ {
-		_ = os.Remove(path)
 		if err := os.Rename(tmpPath, path); err == nil {
 			return nil
 		} else {
 			lastErr = err
+			if runtime.GOOS == "windows" {
+				if swapErr := replaceFileWindows(path, tmpPath); swapErr == nil {
+					return nil
+				} else {
+					lastErr = swapErr
+				}
+			}
 			time.Sleep(time.Duration(i+1) * 10 * time.Millisecond)
 		}
 	}
 
 	return fmt.Errorf("rename temp file: %w", lastErr)
+}
+
+func replaceFileWindows(dstPath, srcPath string) error {
+	backupPath := fmt.Sprintf("%s.bak-%d", dstPath, time.Now().UnixNano())
+	if err := os.Rename(dstPath, backupPath); err != nil {
+		return fmt.Errorf("rename old file to backup: %w", err)
+	}
+	if err := os.Rename(srcPath, dstPath); err != nil {
+		_ = os.Rename(backupPath, dstPath)
+		return fmt.Errorf("swap temp file into place: %w", err)
+	}
+	_ = os.Remove(backupPath)
+	return nil
+}
+
+func (s *JSONStore) withActiveStateLock(fn func() error) error {
+	lockPath := s.activeStatePath + ".lock"
+
+	var lockFile *os.File
+	var err error
+	for i := 0; i < 100; i++ {
+		lockFile, err = os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+		if err == nil {
+			break
+		}
+		if !isLockContention(err) {
+			return fmt.Errorf("acquire store lock: %w", err)
+		}
+		time.Sleep(time.Duration(i+1) * 2 * time.Millisecond)
+	}
+	if err != nil {
+		return fmt.Errorf("acquire store lock timeout: %w", err)
+	}
+	defer func() {
+		_ = lockFile.Close()
+		_ = os.Remove(lockPath)
+	}()
+
+	return fn()
+}
+
+func isLockContention(err error) bool {
+	if errors.Is(err, os.ErrExist) {
+		return true
+	}
+	// On Windows, antivirus or filesystem hooks can temporarily deny access.
+	return runtime.GOOS == "windows" && os.IsPermission(err)
 }
