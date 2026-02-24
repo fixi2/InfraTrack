@@ -57,15 +57,11 @@ func newSetupCmd() *cobra.Command {
 			}
 
 			var result setup.ApplyResult
-			err = runWithSpinner(cmd.ErrOrStderr(), "Applying setup changes...", func() error {
-				var applyErr error
-				result, applyErr = setup.Apply(setup.ApplyInput{
-					Scope:      scope,
-					BinDir:     cfg.binDir,
-					NoPath:     cfg.noPath,
-					Completion: completion,
-				})
-				return applyErr
+			result, err = setup.Apply(setup.ApplyInput{
+				Scope:      scope,
+				BinDir:     cfg.binDir,
+				NoPath:     cfg.noPath,
+				Completion: completion,
 			})
 			if err != nil {
 				return err
@@ -187,15 +183,11 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 			}
 
 			var result setup.ApplyResult
-			err = runWithSpinner(cmd.ErrOrStderr(), "Applying setup changes...", func() error {
-				var applyErr error
-				result, applyErr = setup.Apply(setup.ApplyInput{
-					Scope:      scope,
-					BinDir:     cfg.binDir,
-					NoPath:     cfg.noPath,
-					Completion: completion,
-				})
-				return applyErr
+			result, err = setup.Apply(setup.ApplyInput{
+				Scope:      scope,
+				BinDir:     cfg.binDir,
+				NoPath:     cfg.noPath,
+				Completion: completion,
 			})
 			if err != nil {
 				return err

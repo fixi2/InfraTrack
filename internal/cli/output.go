@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 func printOK(out io.Writer, format string, args ...any) {
@@ -187,5 +188,66 @@ func colorize(s string, code int) string {
 }
 
 func runWithSpinner(out io.Writer, label string, fn func() error) error {
-	return fn()
+	if !spinnerEnabled(out) {
+		return fn()
+	}
+
+	label = strings.TrimSpace(label)
+	if label == "" {
+		label = "Working..."
+	}
+
+	done := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		frames := []string{"|", "/", "-", `\`}
+		frameIdx := 0
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		render := func(frame string) {
+			if supportsColor(out) {
+				frame = colorize(frame, 36)
+			}
+			fmt.Fprintf(out, "\r%s %s", frame, label)
+		}
+
+		render(frames[frameIdx])
+		for {
+			select {
+			case <-done:
+				clearSpinnerLine(out, label)
+				return
+			case <-ticker.C:
+				frameIdx = (frameIdx + 1) % len(frames)
+				render(frames[frameIdx])
+			}
+		}
+	}()
+
+	err := fn()
+	close(done)
+	wg.Wait()
+	return err
+}
+
+func spinnerEnabled(out io.Writer) bool {
+	if !isTTY(out) {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("TERM")), "dumb") {
+		return false
+	}
+	if os.Getenv("INFRATRACK_NO_SPINNER") == "1" {
+		return false
+	}
+	return true
+}
+
+func clearSpinnerLine(out io.Writer, label string) {
+	blank := strings.Repeat(" ", len(label)+4)
+	fmt.Fprintf(out, "\r%s\r", blank)
 }

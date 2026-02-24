@@ -371,11 +371,7 @@ func newExportCmd(s store.SessionStore) *cobra.Command {
 			}
 
 			var outPath string
-			err = runWithSpinner(cmd.ErrOrStderr(), "Exporting runbook...", func() error {
-				var exportErr error
-				outPath, exportErr = export.WriteMarkdownWithOptions(session, workingDir, opts)
-				return exportErr
-			})
+			outPath, err = export.WriteMarkdownWithOptions(session, workingDir, opts)
 			if err != nil {
 				return fmt.Errorf("export markdown: %w", err)
 			}

@@ -96,6 +96,7 @@ func BuildStatus(scope Scope, binDir string) (Status, error) {
 	}
 
 	pathValue := os.Getenv("PATH")
+	pathConfigured := PathContainsDir(pathValue, binDir)
 	if runtime.GOOS == "windows" {
 		if userPath, readErr := readWindowsUserPathFn(); readErr == nil {
 			if strings.TrimSpace(pathValue) == "" {
@@ -103,6 +104,11 @@ func BuildStatus(scope Scope, binDir string) (Status, error) {
 			} else if strings.TrimSpace(userPath) != "" {
 				pathValue = userPath + string(os.PathListSeparator) + pathValue
 			}
+		}
+		pathConfigured = PathContainsDir(pathValue, binDir)
+	} else if !pathConfigured {
+		if persisted, err := hasPosixPathMarker(binDir); err == nil && persisted {
+			pathConfigured = true
 		}
 	}
 
@@ -113,8 +119,34 @@ func BuildStatus(scope Scope, binDir string) (Status, error) {
 		BinDir:           binDir,
 		TargetBinaryPath: targetBinary,
 		Installed:        installed,
-		PathOK:           PathContainsDir(pathValue, binDir),
+		PathOK:           pathConfigured,
 		StateFound:       found,
 		PendingFinalize:  state.PendingFinalize,
 	}, nil
+}
+
+func hasPosixPathMarker(binDir string) (bool, error) {
+	profile, err := resolvePosixProfileFn()
+	if err != nil {
+		return false, err
+	}
+	content, err := os.ReadFile(profile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	begin, end, exists, err := findSetupMarkerSpan(string(content))
+	if err != nil || !exists {
+		return false, err
+	}
+	block := strings.ToLower(strings.TrimSpace(string(content[begin:end])))
+	quoted, err := quotePOSIXSingle(binDir)
+	if err != nil {
+		return false, err
+	}
+	want := strings.ToLower("export PATH=" + quoted + ":\"$PATH\"")
+	return strings.Contains(block, want), nil
 }

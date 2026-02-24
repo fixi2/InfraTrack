@@ -45,6 +45,9 @@ func TestRunWithSpinnerNonTTY(t *testing.T) {
 	if calls != 1 {
 		t.Fatalf("expected wrapped function to be called once, got %d", calls)
 	}
+	if out.Len() != 0 {
+		t.Fatalf("expected no spinner output in non-TTY, got: %q", out.String())
+	}
 }
 
 func TestPrintHintsMultiUsesArrows(t *testing.T) {

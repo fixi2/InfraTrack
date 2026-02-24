@@ -167,11 +167,22 @@ func runPowershell(script string) (string, error) {
 }
 
 func powershellExePath() string {
-	systemRoot := strings.TrimSpace(os.Getenv("SystemRoot"))
-	if systemRoot == "" {
-		systemRoot = `C:\Windows`
+	preferred := `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`
+	if _, err := os.Stat(preferred); err == nil {
+		return preferred
 	}
-	return filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+
+	for _, root := range []string{strings.TrimSpace(os.Getenv("SystemRoot")), strings.TrimSpace(os.Getenv("WINDIR"))} {
+		if root == "" {
+			continue
+		}
+		candidate := filepath.Join(root, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+	}
+
+	return preferred
 }
 
 func quotePOSIXSingle(v string) (string, error) {
