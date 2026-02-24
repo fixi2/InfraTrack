@@ -81,9 +81,9 @@ func RenderMarkdownWithOptions(session *store.Session, opts MarkdownOptions) str
 	b.WriteString(fmt.Sprintf("Results: OK %d | FAILED %d | REDACTED %d\n", summary.ok, summary.failed, summary.redacted))
 	b.WriteString(fmt.Sprintf("Total duration: %d ms\n\n", summary.totalDurationMS))
 
-	b.WriteString("## Preconditions\n")
+	b.WriteString("## Before You Run\n")
 	for _, precondition := range detectPreconditions(session.Steps) {
-		b.WriteString("- ")
+		b.WriteString("- [ ] ")
 		b.WriteString(precondition)
 		b.WriteString("\n")
 	}
@@ -238,8 +238,8 @@ func normalizeResult(step store.Step) (string, string) {
 func detectPreconditions(steps []store.Step) []string {
 	if len(steps) == 0 {
 		return []string{
-			"TODO: Verify required tools and access are available.",
-			"TODO: Confirm no secrets are needed in commands.",
+			"Required tools are installed and available in PATH.",
+			"Credentials and environment context are set for the target system.",
 		}
 	}
 
@@ -250,7 +250,10 @@ func detectPreconditions(steps []store.Step) []string {
 	hasCloudCLI := false
 	hasDBCLI := false
 	for _, step := range steps {
-		cmd := strings.ToLower(step.Command)
+		cmd := guidanceCommand(step.Command)
+		if cmd == "" {
+			continue
+		}
 		hasKubectl = hasKubectl || kubectlWord.MatchString(cmd)
 		hasHelm = hasHelm || helmWord.MatchString(cmd)
 		hasDocker = hasDocker || dockerWord.MatchString(cmd)
@@ -262,49 +265,49 @@ func detectPreconditions(steps []store.Step) []string {
 	preconditions := make([]string, 0, 10)
 	if hasKubectl {
 		preconditions = append(preconditions,
-			"Suggested: `kubectl` is installed and available in PATH.",
-			"Suggested: Kubernetes context and access are configured (`KUBECONFIG`/current-context).",
+			"`kubectl` is installed and available in PATH.",
+			"Kubernetes context and access are configured (`KUBECONFIG`/current-context).",
 		)
 	}
 	if hasHelm {
 		preconditions = append(preconditions,
-			"Suggested: `helm` is installed and points to the intended Kubernetes context.",
-			"Suggested: Required chart repositories are configured and reachable.",
+			"`helm` is installed and targets the intended Kubernetes context.",
+			"Required chart repositories are configured and reachable.",
 		)
 	}
 	if hasDocker {
 		preconditions = append(preconditions,
-			"Suggested: Docker CLI is installed and Docker daemon is running.",
-			"Suggested: Current user has permission to access Docker daemon.",
+			"Docker CLI is installed and Docker daemon is running.",
+			"Current user has permission to access Docker daemon.",
 		)
 	}
 	if hasTerraform {
 		preconditions = append(preconditions,
-			"Suggested: `terraform` CLI is installed and initialized for this workspace.",
-			"Suggested: Backend credentials and target workspace are configured.",
+			"`terraform` CLI is installed and initialized for this workspace.",
+			"Backend credentials and target workspace are configured.",
 		)
 	}
 	if hasCloudCLI {
 		preconditions = append(preconditions,
-			"Suggested: Cloud CLI authentication is active for the intended account/project/subscription.",
-			"Suggested: Required IAM permissions are available for the target resources.",
+			"Cloud CLI authentication is active for the intended account/project/subscription.",
+			"Required IAM permissions are available for the target resources.",
 		)
 	}
 	if hasDBCLI {
 		preconditions = append(preconditions,
-			"Suggested: Database client access is configured (host, port, user, SSL mode).",
-			"Suggested: Use least-privilege credentials and avoid exposing secrets in command arguments.",
+			"Database client access is configured (host, port, user, SSL mode).",
+			"Use least-privilege credentials and avoid exposing secrets in command arguments.",
 		)
 	}
 
 	if len(preconditions) == 0 {
 		return []string{
-			"TODO: Verify required tools and access are available.",
-			"TODO: Confirm no secrets are needed in commands.",
+			"Required tools are installed and available in PATH.",
+			"Credentials and environment context are set for the target system.",
 		}
 	}
 
-	preconditions = append(preconditions, "Suggested: Confirm no secrets are needed in commands.")
+	preconditions = append(preconditions, "Sensitive values are not exposed in command arguments.")
 	return preconditions
 }
 
@@ -313,20 +316,23 @@ func detectVerificationChecks(steps []store.Step) []string {
 	hasKubectlRolloutStatus := false
 
 	for _, step := range steps {
-		cmd := strings.ToLower(step.Command)
+		cmd := guidanceCommand(step.Command)
+		if cmd == "" {
+			continue
+		}
 		hasKubectlApply = hasKubectlApply || kubectlApply.MatchString(cmd)
 		hasKubectlRolloutStatus = hasKubectlRolloutStatus || kubectlRolloutStatus.MatchString(cmd)
 	}
 
 	if hasKubectlApply || hasKubectlRolloutStatus {
 		return []string{
-			"Suggested check: `kubectl get pods` reports expected pod status.",
-			"Suggested check: `kubectl rollout status deployment/<name>` completes successfully.",
+			"`kubectl get pods` reports expected pod status.",
+			"`kubectl rollout status deployment/<name>` completes successfully.",
 		}
 	}
 
 	return []string{
-		"TODO: Define verification checks.",
+		"Validate that each command achieved the intended result.",
 	}
 }
 
@@ -338,7 +344,10 @@ func detectRollback(steps []store.Step) (string, []string) {
 		if !isSuccessfulStep(step) {
 			continue
 		}
-		cmd := strings.ToLower(step.Command)
+		cmd := guidanceCommand(step.Command)
+		if cmd == "" {
+			continue
+		}
 		name := extractDeploymentName(cmd)
 		if name == "" {
 			continue
@@ -351,16 +360,14 @@ func detectRollback(steps []store.Step) (string, []string) {
 	}
 
 	if len(deployments) == 0 {
-		return "Rollback", []string{"TODO: Add rollback commands."}
+		return "Rollback", []string{"Document the rollback command for this workflow before production use."}
 	}
 
-	items := []string{
-		"Suggested: use with caution. Verify root cause and deployment revision before undo.",
-	}
+	items := []string{"Verify root cause and deployment revision before undoing changes."}
 	for _, name := range deployments {
-		items = append(items, fmt.Sprintf("Suggested: `kubectl rollout undo deployment/%s`", name))
+		items = append(items, fmt.Sprintf("`kubectl rollout undo deployment/%s`", name))
 	}
-	return "Rollback (suggested, use with caution)", items
+	return "Rollback", items
 }
 
 func isSuccessfulStep(step store.Step) bool {
@@ -386,6 +393,35 @@ func extractDeploymentName(cmd string) string {
 		}
 	}
 	return ""
+}
+
+func guidanceCommand(command string) string {
+	cmd := strings.TrimSpace(strings.ToLower(command))
+	if cmd == "" {
+		return ""
+	}
+	// Ignore echo-style wrappers so guidance is based on executed actions, not echoed text.
+	echoPrefixes := []string{
+		"echo ",
+		"cmd /c echo ",
+		"cmd.exe /c echo ",
+		"sh -lc \"echo ",
+		"sh -lc 'echo ",
+		"bash -lc \"echo ",
+		"bash -lc 'echo ",
+		"zsh -lc \"echo ",
+		"zsh -lc 'echo ",
+		"powershell -command echo ",
+		"powershell -noprofile -command echo ",
+		"pwsh -command echo ",
+		"pwsh -noprofile -command echo ",
+	}
+	for _, prefix := range echoPrefixes {
+		if strings.HasPrefix(cmd, prefix) {
+			return ""
+		}
+	}
+	return cmd
 }
 
 func slugify(title string) string {
