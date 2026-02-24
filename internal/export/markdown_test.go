@@ -87,10 +87,10 @@ func TestDetectRollback(t *testing.T) {
 			steps: []store.Step{
 				{Command: "kubectl rollout status deployment/api", Status: "OK", ExitCode: intPtr(0)},
 			},
-			wantTitle: "Rollback (suggested, use with caution)",
+			wantTitle: "Rollback",
 			wantItems: []string{
-				"Suggested: use with caution. Verify root cause and deployment revision before undo.",
-				"Suggested: `kubectl rollout undo deployment/api`",
+				"Verify root cause and deployment revision before undoing changes.",
+				"`kubectl rollout undo deployment/api`",
 			},
 		},
 		{
@@ -98,10 +98,10 @@ func TestDetectRollback(t *testing.T) {
 			steps: []store.Step{
 				{Command: "kubectl set image deployment/web api=repo/app:v2", Status: "OK", ExitCode: intPtr(0)},
 			},
-			wantTitle: "Rollback (suggested, use with caution)",
+			wantTitle: "Rollback",
 			wantItems: []string{
-				"Suggested: use with caution. Verify root cause and deployment revision before undo.",
-				"Suggested: `kubectl rollout undo deployment/web`",
+				"Verify root cause and deployment revision before undoing changes.",
+				"`kubectl rollout undo deployment/web`",
 			},
 		},
 		{
@@ -111,7 +111,7 @@ func TestDetectRollback(t *testing.T) {
 			},
 			wantTitle: "Rollback",
 			wantItems: []string{
-				"TODO: Add rollback commands.",
+				"Document the rollback command for this workflow before production use.",
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestDetectRollback(t *testing.T) {
 			},
 			wantTitle: "Rollback",
 			wantItems: []string{
-				"TODO: Add rollback commands.",
+				"Document the rollback command for this workflow before production use.",
 			},
 		},
 		{
@@ -131,7 +131,17 @@ func TestDetectRollback(t *testing.T) {
 			},
 			wantTitle: "Rollback",
 			wantItems: []string{
-				"TODO: Add rollback commands.",
+				"Document the rollback command for this workflow before production use.",
+			},
+		},
+		{
+			name: "no rollback for echoed kubectl rollout",
+			steps: []store.Step{
+				{Command: "cmd /c echo kubectl rollout status deployment/api", Status: "OK", ExitCode: intPtr(0)},
+			},
+			wantTitle: "Rollback",
+			wantItems: []string{
+				"Document the rollback command for this workflow before production use.",
 			},
 		},
 	}

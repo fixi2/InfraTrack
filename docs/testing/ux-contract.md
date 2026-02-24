@@ -29,10 +29,11 @@ This document defines user-visible UX behavior that must remain stable unless ex
    - recorded step count
    - result counters: `OK/FAILED/REDACTED`
    - total duration in ms
-3. Reviewer comments are rendered as:
+3. The pre-run checklist section is titled `Before You Run` and uses checkbox lines (`- [ ] ...`).
+4. Reviewer comments are rendered as:
    - `Reviewer note:` for one comment
    - `Reviewer notes:` for two or more comments
-4. No generic `Execute command` headings in step list.
+5. No generic `Execute command` headings in step list.
 
 ## Security UX Guarantees
 

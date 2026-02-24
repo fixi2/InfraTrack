@@ -21,8 +21,8 @@ func TestDetectVerificationChecks(t *testing.T) {
 				{Command: "kubectl apply -f deploy.yaml"},
 			},
 			want: []string{
-				"Suggested check: `kubectl get pods` reports expected pod status.",
-				"Suggested check: `kubectl rollout status deployment/<name>` completes successfully.",
+				"`kubectl get pods` reports expected pod status.",
+				"`kubectl rollout status deployment/<name>` completes successfully.",
 			},
 		},
 		{
@@ -31,8 +31,8 @@ func TestDetectVerificationChecks(t *testing.T) {
 				{Command: "kubectl rollout status deployment/api"},
 			},
 			want: []string{
-				"Suggested check: `kubectl get pods` reports expected pod status.",
-				"Suggested check: `kubectl rollout status deployment/<name>` completes successfully.",
+				"`kubectl get pods` reports expected pod status.",
+				"`kubectl rollout status deployment/<name>` completes successfully.",
 			},
 		},
 		{
@@ -41,7 +41,16 @@ func TestDetectVerificationChecks(t *testing.T) {
 				{Command: `cmd /c echo "hello"`},
 			},
 			want: []string{
-				"TODO: Define verification checks.",
+				"Validate that each command achieved the intended result.",
+			},
+		},
+		{
+			name: "ignore echoed kubectl apply",
+			steps: []store.Step{
+				{Command: `cmd /c echo kubectl apply -f deploy.yaml`},
+			},
+			want: []string{
+				"Validate that each command achieved the intended result.",
 			},
 		},
 	}
