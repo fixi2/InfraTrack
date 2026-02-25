@@ -35,8 +35,9 @@ func NewRootCommand() (*cobra.Command, error) {
 	hooksState := hooks.NewFileStateStore(rootDir)
 
 	rootCmd := &cobra.Command{
-		Use:   "infratrack",
-		Short: "Capture explicit command sessions into deterministic markdown runbooks",
+		Use:     "cmdry",
+		Aliases: []string{"cmdr"},
+		Short:   "Capture explicit command sessions into deterministic markdown runbooks",
 	}
 	var noColor bool
 
@@ -69,13 +70,13 @@ func newInitCmd(s store.SessionStore) *cobra.Command {
 	return &cobra.Command{
 		Use:     "init",
 		Aliases: []string{"i"},
-		Short:   "Initialize local InfraTrack storage and config",
+		Short:   "Initialize local Commandry storage and config",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if err := s.Init(cmd.Context()); err != nil {
 				return fmt.Errorf("initialize storage: %w", err)
 			}
 
-			printOK(cmd.OutOrStdout(), "Initialized InfraTrack at %s", s.RootDir())
+			printOK(cmd.OutOrStdout(), "Initialized Commandry at %s", s.RootDir())
 			return nil
 		},
 	}
@@ -99,10 +100,10 @@ func newStartCmd(s store.SessionStore) *cobra.Command {
 			session, err := s.StartSession(cmd.Context(), title, env, startedAt)
 			if err != nil {
 				if errors.Is(err, store.ErrNotInitialized) {
-					return errors.New("InfraTrack is not initialized. Run `infratrack init` first")
+					return errors.New("Commandry is not initialized. Run `cmdry init` first")
 				}
 				if errors.Is(err, store.ErrActiveSessionExists) {
-					return errors.New("a session is already active. Run `infratrack stop` before starting a new one")
+					return errors.New("a session is already active. Run `cmdry stop` before starting a new one")
 				}
 				return fmt.Errorf("start session: %w", err)
 			}
@@ -136,7 +137,7 @@ func newStopCmd(s store.SessionStore) *cobra.Command {
 			session, err := s.StopSession(cmd.Context(), endedAt)
 			if err != nil {
 				if errors.Is(err, store.ErrNoActiveSession) {
-					return errors.New("no active session. Start one with `infratrack start \"<title>\"`")
+					return errors.New("no active session. Start one with `cmdry start \"<title>\"`")
 				}
 				return fmt.Errorf("stop session: %w", err)
 			}
@@ -155,7 +156,7 @@ func newStopCmd(s store.SessionStore) *cobra.Command {
 func newStatusCmd(s store.SessionStore) *cobra.Command {
 	return &cobra.Command{
 		Use:   "status",
-		Short: "Show current InfraTrack session status",
+		Short: "Show current Commandry session status",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			initialized, err := s.IsInitialized(cmd.Context())
 			if err != nil {
@@ -164,7 +165,7 @@ func newStatusCmd(s store.SessionStore) *cobra.Command {
 
 			if !initialized {
 				fmt.Fprintln(cmd.OutOrStdout(), "Status: not initialized")
-				fmt.Fprintln(cmd.OutOrStdout(), "Run `infratrack init` to create local config and storage")
+				fmt.Fprintln(cmd.OutOrStdout(), "Run `cmdry init` to create local config and storage")
 				return nil
 			}
 
@@ -199,12 +200,12 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 		Args:    cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("usage: infratrack run -- <command> [args...]")
+				return errors.New("usage: cmdry run -- <command> [args...]")
 			}
 
 			if _, err := s.GetActiveSession(cmd.Context()); err != nil {
 				if errors.Is(err, store.ErrNoActiveSession) {
-					return errors.New("no active session. Run `infratrack start \"<title>\"` before `infratrack run`")
+					return errors.New("no active session. Run `cmdry start \"<title>\"` before `cmdry run`")
 				}
 				return fmt.Errorf("check active session: %w", err)
 			}
@@ -259,7 +260,7 @@ func newRunCmd(s store.SessionStore, p *policy.Policy) *cobra.Command {
 					if isWindowsShellBuiltin(args[0]) {
 						printHint(
 							cmd.ErrOrStderr(),
-							"%q is a Windows shell builtin. Try `infratrack run -- cmd /c %s`.",
+							"%q is a Windows shell builtin. Try `cmdry run -- cmd /c %s`.",
 							args[0],
 							sanitized.Command,
 						)
@@ -438,9 +439,9 @@ func newVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "version",
 		Aliases: []string{"v"},
-		Short:   "Print InfraTrack build version",
+		Short:   "Print Commandry build version",
 		Run: func(cmd *cobra.Command, _ []string) {
-			fmt.Fprintf(cmd.OutOrStdout(), "InfraTrack %s\n", buildinfo.String())
+			fmt.Fprintf(cmd.OutOrStdout(), "Commandry %s\n", buildinfo.String())
 		},
 	}
 }
@@ -454,13 +455,13 @@ func newAliasCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			switch strings.ToLower(shellName) {
 			case "powershell":
-				fmt.Fprintln(cmd.OutOrStdout(), "Set-Alias -Name it -Value infratrack")
+				fmt.Fprintln(cmd.OutOrStdout(), "Set-Alias -Name it -Value cmdry")
 				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding the line above to $PROFILE")
 			case "bash", "zsh":
-				fmt.Fprintln(cmd.OutOrStdout(), "alias it='infratrack'")
+				fmt.Fprintln(cmd.OutOrStdout(), "alias it='cmdry'")
 				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding the line above to ~/.bashrc or ~/.zshrc")
 			case "cmd":
-				fmt.Fprintln(cmd.OutOrStdout(), "doskey it=infratrack $*")
+				fmt.Fprintln(cmd.OutOrStdout(), "doskey it=cmdry $*")
 				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding this to your cmd startup script")
 			default:
 				return errors.New("unsupported shell. Use one of: powershell, bash, zsh, cmd")

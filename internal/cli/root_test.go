@@ -117,10 +117,10 @@ func TestAliasCommandOutput(t *testing.T) {
 		contains string
 		wantErr  bool
 	}{
-		{name: "powershell", shell: "powershell", contains: "Set-Alias -Name it -Value infratrack"},
-		{name: "bash", shell: "bash", contains: "alias it='infratrack'"},
-		{name: "zsh", shell: "zsh", contains: "alias it='infratrack'"},
-		{name: "cmd", shell: "cmd", contains: "doskey it=infratrack $*"},
+		{name: "powershell", shell: "powershell", contains: "Set-Alias -Name it -Value cmdry"},
+		{name: "bash", shell: "bash", contains: "alias it='cmdry'"},
+		{name: "zsh", shell: "zsh", contains: "alias it='cmdry'"},
+		{name: "cmd", shell: "cmd", contains: "doskey it=cmdry $*"},
 		{name: "unsupported", shell: "fish", wantErr: true},
 	}
 
@@ -212,8 +212,30 @@ func TestNoColorFlagAccepted(t *testing.T) {
 	if err := root.Execute(); err != nil {
 		t.Fatalf("expected --no-color to be accepted, got error: %v", err)
 	}
-	if !strings.Contains(out.String(), "InfraTrack") {
+	if !strings.Contains(out.String(), "Commandry") {
 		t.Fatalf("unexpected output: %s", out.String())
+	}
+}
+
+func TestRootUseAndAlias(t *testing.T) {
+	t.Parallel()
+
+	root, err := NewRootCommand()
+	if err != nil {
+		t.Fatalf("NewRootCommand failed: %v", err)
+	}
+	if root.Use != "cmdry" {
+		t.Fatalf("root use = %q, want %q", root.Use, "cmdry")
+	}
+	found := false
+	for _, alias := range root.Aliases {
+		if alias == "cmdr" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected root alias cmdr")
 	}
 }
 

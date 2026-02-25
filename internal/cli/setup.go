@@ -18,7 +18,7 @@ func newSetupCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "setup",
-		Short: "Install InfraTrack for the current user",
+		Short: "Install Commandry for the current user",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			scope, completion, err := parseSetupInputs(cfg.scopeText, cfg.completionRaw)
 			if err != nil {
@@ -71,7 +71,7 @@ func newSetupCmd() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&cfg.binDir, "bin-dir", "", "Install target directory for infratrack binary")
+	cmd.PersistentFlags().StringVar(&cfg.binDir, "bin-dir", "", "Install target directory for cmdry binary")
 	cmd.PersistentFlags().StringVar(&cfg.scopeText, "scope", string(setup.ScopeUser), "Setup scope: user")
 	cmd.PersistentFlags().BoolVar(&cfg.noPath, "no-path", false, "Do not modify PATH")
 	cmd.PersistentFlags().StringVar(&cfg.completionRaw, "completion", string(setup.CompletionNone), "Completion setup mode: none")
@@ -171,7 +171,7 @@ func newSetupApplyCmd(cfg *setupCommandConfig) *cobra.Command {
 			}
 
 			if !yes {
-				printHint(cmd.OutOrStdout(), "Run `infratrack setup plan` to review the full dry-run plan.")
+				printHint(cmd.OutOrStdout(), "Run `cmdry setup plan` to review the full dry-run plan.")
 				ok, err := confirmSetupApply(cmd)
 				if err != nil {
 					return err
@@ -266,7 +266,7 @@ func printSetupPlan(cmd *cobra.Command, plan setup.Plan) {
 	}
 	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "No changes were made.")
-	fmt.Fprintln(out, "Use `infratrack setup` to apply.")
+	fmt.Fprintln(out, "Use `cmdry setup` to apply.")
 }
 
 func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool, verbose bool, showSummary bool) {
@@ -288,7 +288,7 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 	if result.PendingFinalize {
 		printWarn(out, "Setup staged")
 		fmt.Fprintln(out, "Current binary is in use. Restart terminal and run:")
-		fmt.Fprintln(out, "  infratrack setup apply")
+		fmt.Fprintln(out, "  cmdry setup apply")
 		return
 	} else {
 		printOK(out, "Setup complete")
@@ -306,7 +306,7 @@ func printSetupApplyResult(out io.Writer, result setup.ApplyResult, noPath bool,
 	if !noPath {
 		tips = append(tips, "Restart terminal to load updated PATH.")
 	}
-	tips = append(tips, "Use `infratrack setup status` for details.")
+	tips = append(tips, "Use `cmdry setup status` for details.")
 	printTips(out, tips...)
 }
 

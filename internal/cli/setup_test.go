@@ -135,7 +135,7 @@ func TestSetupApplyYes(t *testing.T) {
 	if !strings.Contains(got, "- binary: ") {
 		t.Fatalf("expected binary summary line, got: %s", got)
 	}
-	if !strings.Contains(got, "Use `infratrack setup status` for details.") {
+	if !strings.Contains(got, "Use `cmdry setup status` for details.") {
 		t.Fatalf("expected follow-up status hint, got: %s", got)
 	}
 }

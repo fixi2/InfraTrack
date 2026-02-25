@@ -15,7 +15,7 @@ import (
 func newDoctorCmd(s store.SessionStore) *cobra.Command {
 	return &cobra.Command{
 		Use:   "doctor",
-		Short: "Run local diagnostics for InfraTrack setup",
+		Short: "Run local diagnostics for Commandry setup",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			root := s.RootDir()
 			configPath := filepath.Join(root, "config.yaml")
@@ -46,7 +46,7 @@ func newDoctorCmd(s store.SessionStore) *cobra.Command {
 				} else {
 					fmt.Fprintln(cmd.OutOrStdout(), "Initialization: NOT INITIALIZED")
 				}
-				printHint(cmd.OutOrStdout(), "Run `infratrack init`.")
+				printHint(cmd.OutOrStdout(), "Run `cmdry init`.")
 			}
 
 			if err := ensureWritable(root); err != nil {
@@ -63,20 +63,20 @@ func newDoctorCmd(s store.SessionStore) *cobra.Command {
 				}
 			}
 
-			if path, err := exec.LookPath("infratrack"); err != nil {
+			if path, err := exec.LookPath("cmdry"); err != nil {
 				if supportsUnicode(cmd.OutOrStdout()) {
-					printWarn(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: no")
+					printWarn(cmd.OutOrStdout(), "Command executable `cmdry` in PATH: no")
 				} else {
-					fmt.Fprintln(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: NO")
+					fmt.Fprintln(cmd.OutOrStdout(), "Command executable `cmdry` in PATH: NO")
 				}
 				if runtime.GOOS == "windows" {
 					printHint(cmd.OutOrStdout(), "If installed with winget, open a new terminal session.")
 				}
 			} else {
 				if supportsUnicode(cmd.OutOrStdout()) {
-					printOK(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: yes (%s)", path)
+					printOK(cmd.OutOrStdout(), "Command executable `cmdry` in PATH: yes (%s)", path)
 				} else {
-					fmt.Fprintf(cmd.OutOrStdout(), "Command executable `infratrack` in PATH: YES (%s)\n", path)
+					fmt.Fprintf(cmd.OutOrStdout(), "Command executable `cmdry` in PATH: YES (%s)\n", path)
 				}
 			}
 
