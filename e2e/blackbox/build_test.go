@@ -20,16 +20,19 @@ var (
 
 func resolveBinaryPath(t *testing.T) string {
 	t.Helper()
+	if override := os.Getenv("COMMANDRY_E2E_BIN"); override != "" {
+		return override
+	}
 	if override := os.Getenv("INFRATRACK_E2E_BIN"); override != "" {
 		return override
 	}
 	buildOnce.Do(func() {
-		tmpDir, err := os.MkdirTemp("", "infratrack-blackbox-bin-*")
+		tmpDir, err := os.MkdirTemp("", "cmdry-blackbox-bin-*")
 		if err != nil {
 			buildErr = err
 			return
 		}
-		name := "infratrack"
+		name := "cmdry"
 		if isWindows() {
 			name += ".exe"
 		}

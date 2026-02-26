@@ -39,7 +39,7 @@ jobs:
           go-version-file: go.mod
       - name: Build binary once
         shell: pwsh
-        run: go build -o .\infratrack.exe ./cmd/infratrack
+        run: go build -o .\cmdry.exe ./cmd/infratrack
       - name: Run runbook readability unit pack
         shell: pwsh
         run: |
@@ -47,7 +47,7 @@ jobs:
       - name: Run runbook readability black-box pack
         shell: pwsh
         env:
-          INFRATRACK_E2E_BIN: ${{ github.workspace }}\infratrack.exe
+          COMMANDRY_E2E_BIN: ${{ github.workspace }}\cmdry.exe
         run: |
           go test ./e2e/blackbox -count=1 -timeout 10m -run "TestGoldenRunbookSkeleton|TestGoldenHelpOutput|TestSecretsAndDenylistDoNotLeakToRunbook"
 
@@ -62,11 +62,11 @@ jobs:
           go-version-file: go.mod
       - name: Build binary once
         shell: pwsh
-        run: go build -o .\infratrack.exe ./cmd/infratrack
+        run: go build -o .\cmdry.exe ./cmd/infratrack
       - name: Run fast black-box contract pack
         shell: pwsh
         env:
-          INFRATRACK_E2E_BIN: ${{ github.workspace }}\infratrack.exe
+          COMMANDRY_E2E_BIN: ${{ github.workspace }}\cmdry.exe
         run: |
           go test ./e2e/blackbox -count=1 -timeout 12m -run "TestCLI|TestSessionLifecycle|TestSecrets|TestExportLastEquals|TestAlias|TestEquivalentExportFlags|TestSetup"
 
@@ -81,16 +81,16 @@ jobs:
           go-version-file: go.mod
       - name: Build binary once
         shell: pwsh
-        run: go build -o .\infratrack.exe ./cmd/infratrack
+        run: go build -o .\cmdry.exe ./cmd/infratrack
       - name: Run full black-box suite
         shell: pwsh
         env:
-          INFRATRACK_E2E_BIN: ${{ github.workspace }}\infratrack.exe
+          COMMANDRY_E2E_BIN: ${{ github.workspace }}\cmdry.exe
         run: go test ./e2e/blackbox -count=1 -timeout 25m
       - name: Run volume-10k black-box suite
         shell: pwsh
         env:
-          INFRATRACK_E2E_BIN: ${{ github.workspace }}\infratrack.exe
+          COMMANDRY_E2E_BIN: ${{ github.workspace }}\cmdry.exe
           IT_BLACKBOX_VOLUME_COUNT: "10000"
         run: go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 35m
 
@@ -105,11 +105,11 @@ jobs:
           go-version-file: go.mod
       - name: Build binary once
         shell: pwsh
-        run: go build -o .\infratrack.exe ./cmd/infratrack
+        run: go build -o .\cmdry.exe ./cmd/infratrack
       - name: Black-box soak (volume + repeated runs)
         shell: pwsh
         env:
-          INFRATRACK_E2E_BIN: ${{ github.workspace }}\infratrack.exe
+          COMMANDRY_E2E_BIN: ${{ github.workspace }}\cmdry.exe
           IT_BLACKBOX_VOLUME_COUNT: "10000"
         run: |
           go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m

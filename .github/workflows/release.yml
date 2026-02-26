@@ -24,12 +24,12 @@ jobs:
 
       - name: Build binary once
         shell: pwsh
-        run: go build -o .\infratrack.exe ./cmd/infratrack
+        run: go build -o .\cmdry.exe ./cmd/infratrack
 
       - name: Run release soak black-box pack
         shell: pwsh
         env:
-          INFRATRACK_E2E_BIN: ${{ github.workspace }}\infratrack.exe
+          COMMANDRY_E2E_BIN: ${{ github.workspace }}\cmdry.exe
           IT_BLACKBOX_VOLUME_COUNT: "10000"
         run: |
           go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
@@ -60,11 +60,11 @@ jobs:
           mkdir -p dist
           LDFLAGS="-s -w -X github.com/fixi2/InfraTrack/internal/buildinfo.Version=${VERSION}"
 
-          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o dist/infratrack-linux-amd64 ./cmd/infratrack
-          GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o dist/infratrack-darwin-amd64 ./cmd/infratrack
-          GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "$LDFLAGS" -o dist/infratrack-darwin-arm64 ./cmd/infratrack
-          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o dist/infratrack-windows-amd64.exe ./cmd/infratrack
-          cp dist/infratrack-windows-amd64.exe dist/infratrack.exe
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o dist/cmdry-linux-amd64 ./cmd/infratrack
+          GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o dist/cmdry-darwin-amd64 ./cmd/infratrack
+          GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "$LDFLAGS" -o dist/cmdry-darwin-arm64 ./cmd/infratrack
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o dist/cmdry-windows-amd64.exe ./cmd/infratrack
+          cp dist/cmdry-windows-amd64.exe dist/cmdry.exe
 
       - name: Generate SHA256 checksums
         shell: bash
@@ -79,11 +79,11 @@ jobs:
         run: |
           set -euo pipefail
           files=(
-            dist/infratrack-linux-amd64
-            dist/infratrack-darwin-amd64
-            dist/infratrack-darwin-arm64
-            dist/infratrack-windows-amd64.exe
-            dist/infratrack.exe
+            dist/cmdry-linux-amd64
+            dist/cmdry-darwin-amd64
+            dist/cmdry-darwin-arm64
+            dist/cmdry-windows-amd64.exe
+            dist/cmdry.exe
             dist/checksums.txt
           )
 
