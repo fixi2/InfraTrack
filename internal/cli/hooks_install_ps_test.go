@@ -85,3 +85,27 @@ func TestPowerShellHookBlockUsesAbsolutePath(t *testing.T) {
 		t.Fatalf("expected commandry root path in hook block, got: %s", block)
 	}
 }
+
+func TestUpsertPowerShellHookBlockReplacesLegacyMarkers(t *testing.T) {
+	t.Parallel()
+
+	legacy := strings.Join([]string{
+		legacyPSHookBeginMarker,
+		"Write-Host legacy",
+		legacyPSHookEndMarker,
+		"",
+	}, "\n")
+	updated, changed, err := upsertPowerShellHookBlock(legacy, "C:\\Commandry\\cmdry.exe")
+	if err != nil {
+		t.Fatalf("upsert legacy block failed: %v", err)
+	}
+	if !changed {
+		t.Fatal("expected legacy replacement change")
+	}
+	if strings.Contains(updated, legacyPSHookBeginMarker) || strings.Contains(updated, legacyPSHookEndMarker) {
+		t.Fatalf("legacy markers must be removed: %s", updated)
+	}
+	if !strings.Contains(updated, psHookBeginMarker) || !strings.Contains(updated, psHookEndMarker) {
+		t.Fatalf("new markers missing: %s", updated)
+	}
+}

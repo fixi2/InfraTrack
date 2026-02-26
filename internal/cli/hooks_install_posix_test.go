@@ -126,3 +126,27 @@ func TestUpsertHookBlockMalformedMarkers(t *testing.T) {
 		t.Fatal("expected malformed markers error")
 	}
 }
+
+func TestUpsertHookBlockReplacesLegacyMarkers(t *testing.T) {
+	t.Parallel()
+
+	legacy := strings.Join([]string{
+		legacyBashHookBeginMarker,
+		"echo legacy",
+		legacyBashHookEndMarker,
+		"",
+	}, "\n")
+	updated, changed, err := upsertHookBlock(legacy, bashHookBeginMarker, bashHookEndMarker, bashHookBlock("/usr/local/bin/cmdry"))
+	if err != nil {
+		t.Fatalf("upsert from legacy failed: %v", err)
+	}
+	if !changed {
+		t.Fatal("expected legacy replacement change")
+	}
+	if strings.Contains(updated, legacyBashHookBeginMarker) || strings.Contains(updated, legacyBashHookEndMarker) {
+		t.Fatalf("legacy markers must be removed: %s", updated)
+	}
+	if !strings.Contains(updated, bashHookBeginMarker) || !strings.Contains(updated, bashHookEndMarker) {
+		t.Fatalf("new markers missing: %s", updated)
+	}
+}

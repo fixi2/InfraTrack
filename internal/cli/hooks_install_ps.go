@@ -15,8 +15,11 @@ import (
 )
 
 const (
-	psHookBeginMarker = "# >>> infratrack hooks >>>"
-	psHookEndMarker   = "# <<< infratrack hooks <<<"
+	psHookBeginMarker = "# >>> commandry hooks >>>"
+	psHookEndMarker   = "# <<< commandry hooks <<<"
+
+	legacyPSHookBeginMarker = "# >>> infratrack hooks >>>"
+	legacyPSHookEndMarker   = "# <<< infratrack hooks <<<"
 )
 
 func newHooksInstallCmd() *cobra.Command {
@@ -135,7 +138,7 @@ func newHooksUninstallPowerShellCmd() *cobra.Command {
 }
 
 func confirmInstall(cmd *cobra.Command) (bool, error) {
-	fmt.Fprintln(cmd.OutOrStdout(), "This will update your PowerShell profile to add InfraTrack hook capture.")
+	fmt.Fprintln(cmd.OutOrStdout(), "This will update your PowerShell profile to add Commandry hook capture.")
 	fmt.Fprintln(cmd.OutOrStdout(), "Type 'y' to continue:")
 	reader := bufio.NewReader(cmd.InOrStdin())
 	raw, err := reader.ReadString('\n')
@@ -161,11 +164,12 @@ func powerShellInstallStatus() (bool, string) {
 		state := "not found"
 		content, err := readTextFile(path)
 		if err == nil {
-			if strings.Contains(content, psHookBeginMarker) && strings.Contains(content, psHookEndMarker) {
+			if (strings.Contains(content, psHookBeginMarker) && strings.Contains(content, psHookEndMarker)) ||
+				(strings.Contains(content, legacyPSHookBeginMarker) && strings.Contains(content, legacyPSHookEndMarker)) {
 				state = "installed"
 				installedAny = true
 			} else {
-				state = "present (no infratrack block)"
+				state = "present (no commandry block)"
 			}
 		}
 		lines = append(lines, fmt.Sprintf("- %s: %s", path, state))
@@ -193,6 +197,19 @@ func hooksHomeDir() (string, error) {
 
 func upsertPowerShellHookBlock(content, executablePath string) (string, bool, error) {
 	block := powerShellHookBlock(executablePath)
+	if strings.Contains(content, legacyPSHookBeginMarker) && strings.Contains(content, legacyPSHookEndMarker) &&
+		(!strings.Contains(content, psHookBeginMarker) || !strings.Contains(content, psHookEndMarker)) {
+		cleaned, changedLegacy, legacyErr := textblock.Remove(content, legacyPSHookBeginMarker, legacyPSHookEndMarker)
+		if legacyErr != nil {
+			return "", false, errors.New("hook block markers are malformed")
+		}
+		content = cleaned
+		updated, changed, err := textblock.Upsert(content, psHookBeginMarker, psHookEndMarker, block)
+		if err != nil {
+			return "", false, errors.New("hook block markers are malformed")
+		}
+		return updated, changed || changedLegacy, nil
+	}
 	updated, changed, err := textblock.Upsert(content, psHookBeginMarker, psHookEndMarker, block)
 	if err != nil {
 		return "", false, errors.New("hook block markers are malformed")
@@ -204,6 +221,14 @@ func removePowerShellHookBlock(content string) (string, bool, error) {
 	updated, changed, err := textblock.Remove(content, psHookBeginMarker, psHookEndMarker)
 	if err != nil {
 		return "", false, errors.New("hook block markers are malformed")
+	}
+	if !changed {
+		legacyUpdated, legacyChanged, legacyErr := textblock.Remove(content, legacyPSHookBeginMarker, legacyPSHookEndMarker)
+		if legacyErr != nil {
+			return "", false, errors.New("hook block markers are malformed")
+		}
+		updated = legacyUpdated
+		changed = legacyChanged
 	}
 	return updated, changed, nil
 }

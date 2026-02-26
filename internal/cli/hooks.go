@@ -185,7 +185,7 @@ func newHookRecordCmd(s store.SessionStore, p *policy.Policy, stateStore hooks.S
 			}
 
 			if result.Reminder {
-				fmt.Fprintln(cmd.ErrOrStderr(), "[REC] InfraTrack recording is active.")
+				fmt.Fprintln(cmd.ErrOrStderr(), "[REC] Commandry recording is active.")
 			}
 			return nil
 		},

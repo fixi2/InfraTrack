@@ -12,10 +12,15 @@ import (
 )
 
 const (
-	bashHookBeginMarker = "# >>> infratrack hooks (bash) >>>"
-	bashHookEndMarker   = "# <<< infratrack hooks (bash) <<<"
-	zshHookBeginMarker  = "# >>> infratrack hooks (zsh) >>>"
-	zshHookEndMarker    = "# <<< infratrack hooks (zsh) <<<"
+	bashHookBeginMarker = "# >>> commandry hooks (bash) >>>"
+	bashHookEndMarker   = "# <<< commandry hooks (bash) <<<"
+	zshHookBeginMarker  = "# >>> commandry hooks (zsh) >>>"
+	zshHookEndMarker    = "# <<< commandry hooks (zsh) <<<"
+
+	legacyBashHookBeginMarker = "# >>> infratrack hooks (bash) >>>"
+	legacyBashHookEndMarker   = "# <<< infratrack hooks (bash) <<<"
+	legacyZshHookBeginMarker  = "# >>> infratrack hooks (zsh) >>>"
+	legacyZshHookEndMarker    = "# <<< infratrack hooks (zsh) <<<"
 )
 
 func newHooksInstallBashCmd() *cobra.Command {
@@ -117,6 +122,17 @@ func uninstallPosixHook(cmd *cobra.Command, path, begin, end string) error {
 		return err
 	}
 	if !changed {
+		legacyBegin, legacyEnd := legacyPosixMarkers(begin, end)
+		if legacyBegin != "" {
+			updatedLegacy, changedLegacy, legacyErr := replaceBetweenMarkers(current, legacyBegin, legacyEnd, "")
+			if legacyErr != nil {
+				return legacyErr
+			}
+			updated = updatedLegacy
+			changed = changedLegacy
+		}
+	}
+	if !changed {
 		fmt.Fprintln(cmd.OutOrStdout(), "No hook block found.")
 		return nil
 	}
@@ -128,6 +144,21 @@ func uninstallPosixHook(cmd *cobra.Command, path, begin, end string) error {
 }
 
 func upsertHookBlock(content, begin, end, block string) (string, bool, error) {
+	legacyBegin, legacyEnd := legacyPosixMarkers(begin, end)
+	if legacyBegin != "" && strings.Contains(content, legacyBegin) && strings.Contains(content, legacyEnd) &&
+		(!strings.Contains(content, begin) || !strings.Contains(content, end)) {
+		cleaned, changedLegacy, legacyErr := textblock.Remove(content, legacyBegin, legacyEnd)
+		if legacyErr != nil {
+			return "", false, errors.New("hook block markers are malformed")
+		}
+		content = cleaned
+		updated, changed, err := textblock.Upsert(content, begin, end, block)
+		if err != nil {
+			return "", false, errors.New("hook block markers are malformed")
+		}
+		return updated, changed || changedLegacy, nil
+	}
+
 	updated, changed, err := textblock.Upsert(content, begin, end, block)
 	if err != nil {
 		return "", false, errors.New("hook block markers are malformed")
@@ -159,10 +190,11 @@ func bashInstallStatus() (bool, string) {
 	state := "not found"
 	content, readErr := readTextFile(path)
 	if readErr == nil {
-		if strings.Contains(content, bashHookBeginMarker) && strings.Contains(content, bashHookEndMarker) {
+		if (strings.Contains(content, bashHookBeginMarker) && strings.Contains(content, bashHookEndMarker)) ||
+			(strings.Contains(content, legacyBashHookBeginMarker) && strings.Contains(content, legacyBashHookEndMarker)) {
 			state = "installed"
 		} else {
-			state = "present (no infratrack block)"
+			state = "present (no commandry block)"
 		}
 	}
 	return state == "installed", fmt.Sprintf("- %s: %s", path, state)
@@ -176,10 +208,11 @@ func zshInstallStatus() (bool, string) {
 	state := "not found"
 	content, readErr := readTextFile(path)
 	if readErr == nil {
-		if strings.Contains(content, zshHookBeginMarker) && strings.Contains(content, zshHookEndMarker) {
+		if (strings.Contains(content, zshHookBeginMarker) && strings.Contains(content, zshHookEndMarker)) ||
+			(strings.Contains(content, legacyZshHookBeginMarker) && strings.Contains(content, legacyZshHookEndMarker)) {
 			state = "installed"
 		} else {
-			state = "present (no infratrack block)"
+			state = "present (no commandry block)"
 		}
 	}
 	return state == "installed", fmt.Sprintf("- %s: %s", path, state)
@@ -333,4 +366,15 @@ func zshHookBlock(executablePath string) string {
 		"__infratrack_apply_prompt_prefix",
 		zshHookEndMarker,
 	}, "\n")
+}
+
+func legacyPosixMarkers(begin, end string) (string, string) {
+	switch {
+	case begin == bashHookBeginMarker && end == bashHookEndMarker:
+		return legacyBashHookBeginMarker, legacyBashHookEndMarker
+	case begin == zshHookBeginMarker && end == zshHookEndMarker:
+		return legacyZshHookBeginMarker, legacyZshHookEndMarker
+	default:
+		return "", ""
+	}
 }
