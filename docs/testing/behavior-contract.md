@@ -1,10 +1,10 @@
-# InfraTrack Black-Box Behavior Contract
+# Commandry Black-Box Behavior Contract
 
 This document defines user-visible CLI behavior that tests must enforce without relying on internal implementation details.
 
 ## C1. CLI Contract
-- `infratrack --help` and `infratrack help` succeed (`exit=0`) and expose command-oriented usage.
-- `infratrack version` succeeds (`exit=0`) and prints a non-empty version line.
+- `cmdry --help` and `cmdry help` succeed (`exit=0`) and expose command-oriented usage.
+- `cmdry version` succeeds (`exit=0`) and prints a non-empty version line.
 - Unknown command fails (`exit!=0`) and includes an "unknown command" diagnostic.
 
 ## C2. Session Recording Contract
@@ -16,7 +16,7 @@ This document defines user-visible CLI behavior that tests must enforce without 
 ## C3. Security / Policy Contract
 - Sentinel secrets must not appear in exported runbooks.
 - Denylisted commands are represented as policy-redacted text (`[REDACTED BY POLICY]` contract token).
-- If `policy.enforce_denylist: true` is set in `config.yaml`, denylisted commands are blocked before execution in `infratrack run`.
+- If `policy.enforce_denylist: true` is set in `config.yaml`, denylisted commands are blocked before execution in `cmdry run`.
 - Raw command stdout/stderr payload is not persisted into runbook command content.
 
 ## C4. Export Contract
@@ -29,7 +29,7 @@ This document defines user-visible CLI behavior that tests must enforce without 
 
 ## C6. Hooks Contract
 - Hook installation/uninstallation is idempotent on temp profile files.
-- Hook recorder must not persist `infratrack ...` self-commands (anti-recursion contract token).
+- Hook recorder must not persist `cmdry ...` self-commands (anti-recursion contract token).
 
 ## C7. Setup Lifecycle Contract
 - `setup plan` is non-mutating preview.

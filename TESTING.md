@@ -1,4 +1,4 @@
-# Testing InfraTrack (Black-Box First)
+# Testing Commandry (Black-Box First)
 
 ## Behavior Contract
 
@@ -16,27 +16,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\.tests\use-local-go-cache.
 Build binary once:
 
 ```powershell
-go build -o .\infratrack.exe ./cmd/infratrack
+go build -o .\cmdry.exe ./cmd/infratrack
 ```
 
 Run fast black-box pack:
 
 ```powershell
-$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:COMMANDRY_E2E_BIN = "$PWD\cmdry.exe"
 go test ./e2e/blackbox -count=1 -run "TestCLI|TestSessionLifecycle|TestSecrets|TestExportLastEquals|TestAlias|TestEquivalentExportFlags|TestSetup"
 ```
 
 Run full black-box pack:
 
 ```powershell
-$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:COMMANDRY_E2E_BIN = "$PWD\cmdry.exe"
 go test ./e2e/blackbox -count=1
 ```
 
 Run heavy volume:
 
 ```powershell
-$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:COMMANDRY_E2E_BIN = "$PWD\cmdry.exe"
 $env:IT_BLACKBOX_VOLUME_COUNT = "10000"
 go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
 ```
@@ -44,7 +44,7 @@ go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
 Release soak local (avoid double-running volume under a short timeout):
 
 ```powershell
-$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:COMMANDRY_E2E_BIN = "$PWD\cmdry.exe"
 $env:IT_BLACKBOX_VOLUME_COUNT = "10000"
 go test ./e2e/blackbox -count=1 -run TestVolumeRecordingAndExport -timeout 40m
 go test ./e2e/blackbox -count=1 -timeout 20m -run "TestCLIHelpAndVersionContract|TestUnknownCommandContract|TestSessionLifecycleBlackBox|TestExportLastEqualsExportSessionID|TestGoldenHelpOutput|TestGoldenRunbookSkeleton|TestHooksInstallUninstallIdempotentOnTempProfile|TestHookRecorderAntiRecursion|TestAliasAndFullCommandsEquivalent|TestEquivalentExportFlags|TestSecretsAndDenylistDoNotLeakToRunbook|TestRandomSentinelNeverAppearsInArtifacts|TestSetupLifecycleContract"
@@ -57,7 +57,7 @@ Golden files live in `e2e/blackbox/testdata`.
 Update goldens intentionally:
 
 ```powershell
-$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:COMMANDRY_E2E_BIN = "$PWD\cmdry.exe"
 go test ./e2e/blackbox -run "TestGoldenHelpOutput|TestGoldenRunbookSkeleton" -update
 ```
 
@@ -74,7 +74,7 @@ Review every golden update in PR.
 Build once:
 
 ```powershell
-go build -o .\infratrack.exe ./cmd/infratrack
+go build -o .\cmdry.exe ./cmd/infratrack
 ```
 
 UX output pack (tips/labels/setup output contract):
@@ -92,6 +92,6 @@ go test ./internal/export -count=1 -run "TestRenderMarkdownGolden|TestRenderMark
 UX black-box readability check:
 
 ```powershell
-$env:INFRATRACK_E2E_BIN = "$PWD\infratrack.exe"
+$env:COMMANDRY_E2E_BIN = "$PWD\cmdry.exe"
 go test ./e2e/blackbox -count=1 -run "TestGoldenRunbookSkeleton|TestGoldenHelpOutput|TestSecretsAndDenylistDoNotLeakToRunbook"
 ```

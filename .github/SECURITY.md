@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-InfraTrack supports security fixes for the latest released minor version.
+Commandry supports security fixes for the latest released minor version.
 
 ## Reporting a Vulnerability
 
@@ -12,7 +12,7 @@ If private reporting is not available, open an issue without exploit details and
 
 When reporting, include:
 
-- InfraTrack version (`infratrack version`)
+- cmdry version (`cmdry version`)
 - OS and shell
 - Reproduction steps
 - Expected vs actual behavior

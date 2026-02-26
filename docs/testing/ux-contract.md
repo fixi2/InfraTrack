@@ -16,9 +16,9 @@ This document defines user-visible UX behavior that must remain stable unless ex
 
 ## Setup UX
 
-1. `infratrack setup` is interactive apply flow.
-2. `infratrack setup plan` is dry-run only and never modifies files or PATH.
-3. `infratrack setup apply --yes` is non-interactive and should finish with concise completion output.
+1. `cmdry setup` is interactive apply flow.
+2. `cmdry setup plan` is dry-run only and never modifies files or PATH.
+3. `cmdry setup apply --yes` is non-interactive and should finish with concise completion output.
 4. Setup completion tips must include terminal restart guidance when PATH was modified.
 
 ## Runbook Readability UX
@@ -40,7 +40,7 @@ This document defines user-visible UX behavior that must remain stable unless ex
 1. Redaction remains strict:
    - denylisted commands remain policy-redacted
    - sensitive values remain masked
-2. If `policy.enforce_denylist: true`, `infratrack run` blocks denylisted commands and reports a clear policy-blocked message.
+2. If `policy.enforce_denylist: true`, `cmdry run` blocks denylisted commands and reports a clear policy-blocked message.
 3. `REDACTED` summary counter is step-based and includes:
    - policy-redacted steps
    - inline redaction (`[REDACTED]`) in sanitized commands
