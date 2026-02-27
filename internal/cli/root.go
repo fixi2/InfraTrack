@@ -455,13 +455,13 @@ func newAliasCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			switch strings.ToLower(shellName) {
 			case "powershell":
-				fmt.Fprintln(cmd.OutOrStdout(), "Set-Alias -Name it -Value cmdry")
+				fmt.Fprintln(cmd.OutOrStdout(), "Set-Alias -Name cmdr -Value cmdry")
 				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding the line above to $PROFILE")
 			case "bash", "zsh":
-				fmt.Fprintln(cmd.OutOrStdout(), "alias it='cmdry'")
+				fmt.Fprintln(cmd.OutOrStdout(), "alias cmdr='cmdry'")
 				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding the line above to ~/.bashrc or ~/.zshrc")
 			case "cmd":
-				fmt.Fprintln(cmd.OutOrStdout(), "doskey it=cmdry $*")
+				fmt.Fprintln(cmd.OutOrStdout(), "doskey cmdr=cmdry $*")
 				fmt.Fprintln(cmd.OutOrStdout(), "# Persist by adding this to your cmd startup script")
 			default:
 				return errors.New("unsupported shell. Use one of: powershell, bash, zsh, cmd")

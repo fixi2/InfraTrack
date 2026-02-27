@@ -86,23 +86,35 @@ func TestHookBlocksUseAbsolutePath(t *testing.T) {
 	if !strings.Contains(zshBlock, "$HOME/.config/commandry") {
 		t.Fatalf("expected commandry state path in zsh block: %s", zshBlock)
 	}
-	if !strings.Contains(bashBlock, "__infratrack_should_prefix") {
+	if !strings.Contains(bashBlock, "__commandry_should_prefix") {
 		t.Fatalf("expected conditional REC helper in bash block: %s", bashBlock)
 	}
-	if !strings.Contains(zshBlock, "__infratrack_should_prefix") {
+	if !strings.Contains(zshBlock, "__commandry_should_prefix") {
 		t.Fatalf("expected conditional REC helper in zsh block: %s", zshBlock)
 	}
-	if !strings.Contains(bashBlock, "trap '__infratrack_preexec' DEBUG") {
+	if !strings.Contains(bashBlock, "trap '__commandry_preexec' DEBUG") {
 		t.Fatalf("expected bash DEBUG trap preexec hook: %s", bashBlock)
 	}
-	if !strings.Contains(zshBlock, "add-zsh-hook preexec __infratrack_preexec") {
+	if !strings.Contains(zshBlock, "add-zsh-hook preexec __commandry_preexec") {
 		t.Fatalf("expected zsh preexec hook: %s", zshBlock)
 	}
-	if !strings.Contains(bashBlock, "__infratrack_hook_ready=1") {
+	if !strings.Contains(bashBlock, "__commandry_hook_ready=1") {
 		t.Fatalf("expected bash block to enable ready flag after init: %s", bashBlock)
 	}
-	if !strings.Contains(zshBlock, "__infratrack_hook_ready=1") {
+	if !strings.Contains(zshBlock, "__commandry_hook_ready=1") {
 		t.Fatalf("expected zsh block to enable ready flag after init: %s", zshBlock)
+	}
+	if strings.Contains(bashBlock, "__infratrack_") {
+		t.Fatalf("unexpected legacy helper prefix in bash block: %s", bashBlock)
+	}
+	if strings.Contains(zshBlock, "__infratrack_") {
+		t.Fatalf("unexpected legacy helper prefix in zsh block: %s", zshBlock)
+	}
+	if strings.Contains(strings.ToLower(bashBlock), "infratrack") {
+		t.Fatalf("unexpected legacy brand token in bash block: %s", bashBlock)
+	}
+	if strings.Contains(strings.ToLower(zshBlock), "infratrack") {
+		t.Fatalf("unexpected legacy brand token in zsh block: %s", zshBlock)
 	}
 	if !strings.Contains(bashBlock, "\"exit\"") {
 		t.Fatalf("expected bash block to ignore exit command: %s", bashBlock)

@@ -97,7 +97,7 @@ func TestRecorderNoReminderWhenDisabled(t *testing.T) {
 	}
 }
 
-func TestRecorderSkipsInfraTrackCommand(t *testing.T) {
+func TestRecorderSkipsSelfCommands(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -250,7 +250,7 @@ func TestRecorderSkipsWhenHooksDisabled(t *testing.T) {
 func newRetryTempDir(t *testing.T) string {
 	t.Helper()
 
-	dir, err := os.MkdirTemp("", "infratrack-hooks-test-*")
+	dir, err := os.MkdirTemp("", "cmdry-hooks-test-*")
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}

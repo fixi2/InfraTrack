@@ -117,10 +117,10 @@ func TestAliasCommandOutput(t *testing.T) {
 		contains string
 		wantErr  bool
 	}{
-		{name: "powershell", shell: "powershell", contains: "Set-Alias -Name it -Value cmdry"},
-		{name: "bash", shell: "bash", contains: "alias it='cmdry'"},
-		{name: "zsh", shell: "zsh", contains: "alias it='cmdry'"},
-		{name: "cmd", shell: "cmd", contains: "doskey it=cmdry $*"},
+		{name: "powershell", shell: "powershell", contains: "Set-Alias -Name cmdr -Value cmdry"},
+		{name: "bash", shell: "bash", contains: "alias cmdr='cmdry'"},
+		{name: "zsh", shell: "zsh", contains: "alias cmdr='cmdry'"},
+		{name: "cmd", shell: "cmd", contains: "doskey cmdr=cmdry $*"},
 		{name: "unsupported", shell: "fish", wantErr: true},
 	}
 

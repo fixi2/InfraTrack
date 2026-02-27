@@ -59,7 +59,7 @@ func (r *Recorder) Record(ctx context.Context, input RecordInput) (RecordResult,
 	}
 
 	args := splitCommand(raw)
-	if isInfraTrackInvocation(args) {
+	if isSelfInvocation(args) {
 		return RecordResult{Recorded: false, SkippedReason: "self_command"}, nil
 	}
 
@@ -133,7 +133,7 @@ func splitCommand(raw string) []string {
 	return parts
 }
 
-func isInfraTrackInvocation(args []string) bool {
+func isSelfInvocation(args []string) bool {
 	if len(args) == 0 {
 		return false
 	}

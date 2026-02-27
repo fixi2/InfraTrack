@@ -65,12 +65,12 @@ func TestReplaceBetweenMarkersMalformed(t *testing.T) {
 }
 
 func TestHooksHomeDirOverride(t *testing.T) {
-	t.Setenv("INFRATRACK_HOME_DIR", "/tmp/infratrack-test-home")
+	t.Setenv("COMMANDRY_HOME_DIR", "/tmp/commandry-test-home")
 	got, err := hooksHomeDir()
 	if err != nil {
 		t.Fatalf("hooksHomeDir failed: %v", err)
 	}
-	if got != "/tmp/infratrack-test-home" {
+	if got != "/tmp/commandry-test-home" {
 		t.Fatalf("unexpected hooks home dir: %s", got)
 	}
 }
@@ -83,6 +83,15 @@ func TestPowerShellHookBlockUsesAbsolutePath(t *testing.T) {
 	}
 	if !strings.Contains(block, "Join-Path $env:APPDATA \"commandry\"") {
 		t.Fatalf("expected commandry root path in hook block, got: %s", block)
+	}
+	if !strings.Contains(block, "$global:CommandryOriginalPrompt") {
+		t.Fatalf("expected commandry prompt state variable in hook block, got: %s", block)
+	}
+	if strings.Contains(block, "$global:InfraTrackOriginalPrompt") {
+		t.Fatalf("unexpected legacy prompt variable in hook block, got: %s", block)
+	}
+	if strings.Contains(strings.ToLower(block), "infratrack") {
+		t.Fatalf("unexpected legacy brand token in hook block, got: %s", block)
 	}
 }
 
