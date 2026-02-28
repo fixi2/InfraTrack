@@ -18,7 +18,7 @@ Default format:
 Examples:
 
 - `feat(cli): add cmdry root alias and help updates`
-- `fix(setup): migrate legacy infratrack config dir to commandry`
+- `fix(setup): migrate legacy config dir to commandry`
 - `test(export): update runbook golden for branding changes`
 - `chore(ci): pin github actions by commit sha`
 
