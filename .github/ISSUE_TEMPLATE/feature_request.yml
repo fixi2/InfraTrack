@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a user-facing improvement or new capability
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What is hard, missing, or unclear today?
+      placeholder: I want to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you want.
+      placeholder: Commandry should...
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Example workflow
+      description: Show the commands or scenario where this would help.
+      placeholder: |
+        cmdry ...
+        cmdry ...
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What do you do today instead?
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Why this matters
+      description: Explain the user value or UX benefit.

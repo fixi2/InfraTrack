@@ -1,0 +1,92 @@
+name: Bug report
+description: Report a reproducible problem in Commandry
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the problem in one or two sentences.
+      placeholder: Commandry fails when...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Commandry version
+      description: Output of `cmdry version`
+      placeholder: v0.6.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: shell
+    attributes:
+      label: Shell
+      description: PowerShell, bash, zsh, cmd, etc.
+      placeholder: PowerShell 7
+    validations:
+      required: true
+
+  - type: input
+    id: install_method
+    attributes:
+      label: Install method
+      description: Release binary, `cmdry setup`, local build, etc.
+      placeholder: Release binary + cmdry setup
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Provide exact commands or a clear sequence.
+      placeholder: |
+        1. Run `cmdry ...`
+        2. Run `cmdry ...`
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: It should ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: It actually ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output or runbook excerpt
+      description: Paste only the relevant part. Remove secrets first.
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else that helps reproduce or narrow the issue.
