@@ -162,7 +162,7 @@ func supportsUnicode(out io.Writer) bool {
 	if forceNoColor || os.Getenv("NO_COLOR") != "" || os.Getenv("CLICOLOR") == "0" {
 		return false
 	}
-	if os.Getenv("INFRATRACK_ASCII") == "1" {
+	if envEnabled("COMMANDRY_ASCII", "INFRATRACK_ASCII") {
 		return false
 	}
 	if !isTTY(out) {
@@ -241,10 +241,20 @@ func spinnerEnabled(out io.Writer) bool {
 	if strings.EqualFold(strings.TrimSpace(os.Getenv("TERM")), "dumb") {
 		return false
 	}
-	if os.Getenv("INFRATRACK_NO_SPINNER") == "1" {
+	if envEnabled("COMMANDRY_NO_SPINNER", "INFRATRACK_NO_SPINNER") {
 		return false
 	}
 	return true
+}
+
+func envEnabled(primary, legacy string) bool {
+	if os.Getenv(primary) == "1" {
+		return true
+	}
+	if legacy != "" && os.Getenv(legacy) == "1" {
+		return true
+	}
+	return false
 }
 
 func clearSpinnerLine(out io.Writer, label string) {

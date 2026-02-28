@@ -39,7 +39,7 @@ func TestRunCommand_ClassifiesExitCodes(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		t.Parallel()
 
-		cmd := []string{exe, "-test.run=TestHelperProcess", "--", "--infratrack-helper-process=1", "exit", "0"}
+		cmd := []string{exe, "-test.run=TestHelperProcess", "--", "--commandry-helper-process=1", "exit", "0"}
 		res, err := RunCommand(context.Background(), cmd, t.TempDir())
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -55,7 +55,7 @@ func TestRunCommand_ClassifiesExitCodes(t *testing.T) {
 	t.Run("nonzero", func(t *testing.T) {
 		t.Parallel()
 
-		cmd := []string{exe, "-test.run=TestHelperProcess", "--", "--infratrack-helper-process=1", "exit", "7"}
+		cmd := []string{exe, "-test.run=TestHelperProcess", "--", "--commandry-helper-process=1", "exit", "7"}
 		res, err := RunCommand(context.Background(), cmd, t.TempDir())
 		if err == nil {
 			t.Fatalf("expected error")
@@ -89,7 +89,7 @@ func TestHelperProcess(t *testing.T) {
 		return
 	}
 
-	if args[sep+1] != "--infratrack-helper-process=1" {
+	if args[sep+1] != "--commandry-helper-process=1" {
 		return
 	}
 	if sep+2 >= len(args) {

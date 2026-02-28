@@ -262,7 +262,7 @@ func preserveKubectlSetImageAssignments(rawCommand string, args []string) (strin
 			continue
 		}
 
-		placeholder := "__INFRATRACK_IMG_ASSIGN_" + strconv.Itoa(index) + "__"
+		placeholder := "__COMMANDRY_IMG_ASSIGN_" + strconv.Itoa(index) + "__"
 		index++
 		sanitized = strings.ReplaceAll(sanitized, arg, placeholder)
 		preserved[placeholder] = arg

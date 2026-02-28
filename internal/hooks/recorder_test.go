@@ -119,7 +119,7 @@ func TestRecorderSkipsSelfCommands(t *testing.T) {
 
 	rec := NewRecorder(sessionStore, policy.NewDefault(), stateStore)
 	result, err := rec.Record(ctx, RecordInput{
-		Command:    "infratrack status",
+		Command:    "cmdry status",
 		ExitCode:   0,
 		DurationMS: 5,
 	})

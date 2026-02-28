@@ -258,7 +258,7 @@ func intPtr(v int) *int {
 func newRetryTempDir(t *testing.T) string {
 	t.Helper()
 
-	dir, err := os.MkdirTemp("", "infratrack-store-test-*")
+	dir, err := os.MkdirTemp("", "commandry-store-test-*")
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}

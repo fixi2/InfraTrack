@@ -16,6 +16,13 @@ const (
 	setupPathEndMarker   = "# <<< infratrack setup path <<<"
 )
 
+const (
+	commandrySetupProfileEnv = "COMMANDRY_SETUP_PROFILE_FILE"
+	legacySetupProfileEnv    = "INFRATRACK_SETUP_PROFILE_FILE"
+	commandryPathValueEnv    = "COMMANDRY_PATH_VALUE"
+	legacyPathValueEnv       = "INFRATRACK_PATH_VALUE"
+)
+
 var (
 	readWindowsUserPathFn  = readWindowsUserPath
 	writeWindowsUserPathFn = writeWindowsUserPath
@@ -115,7 +122,10 @@ func ensurePosixUserPathConfigured(binDir string) (pathApplyResult, error) {
 }
 
 func resolvePosixProfilePath() (string, error) {
-	if v := strings.TrimSpace(os.Getenv("INFRATRACK_SETUP_PROFILE_FILE")); v != "" {
+	if v := strings.TrimSpace(os.Getenv(commandrySetupProfileEnv)); v != "" {
+		return filepath.Clean(v), nil
+	}
+	if v := strings.TrimSpace(os.Getenv(legacySetupProfileEnv)); v != "" {
 		return filepath.Clean(v), nil
 	}
 	home, err := os.UserHomeDir()
@@ -134,8 +144,11 @@ func readWindowsUserPath() (string, error) {
 }
 
 func writeWindowsUserPath(pathValue string) error {
-	cmd := exec.Command(powershellExePath(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "[Environment]::SetEnvironmentVariable('Path', $env:INFRATRACK_PATH_VALUE, 'User')")
-	cmd.Env = append(os.Environ(), "INFRATRACK_PATH_VALUE="+pathValue)
+	cmd := exec.Command(powershellExePath(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "[Environment]::SetEnvironmentVariable('Path', $env:COMMANDRY_PATH_VALUE, 'User')")
+	cmd.Env = append(os.Environ(),
+		commandryPathValueEnv+"="+pathValue,
+		legacyPathValueEnv+"="+pathValue,
+	)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout

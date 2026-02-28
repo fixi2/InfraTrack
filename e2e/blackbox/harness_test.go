@@ -54,6 +54,7 @@ func newHarness(t *testing.T) *harness {
 		"TEMP="+tmpDir,
 		"TMP="+tmpDir,
 		"TMPDIR="+tmpDir,
+		"COMMANDRY_HOME_DIR="+homeDir,
 		"INFRATRACK_HOME_DIR="+homeDir,
 	)
 

@@ -1,5 +1,9 @@
 runbooks/
 .infratrack/
+/commandry
+/commandry.exe
+/commandry-dev.exe
+/commandry-*.exe
 .private-dev-docs/
 .tests/
 .gocache/
@@ -9,7 +13,7 @@ runbooks/
 *.env
 *.key
 *.pem
-infratrack
-infratrack.exe
-infratrack-dev.exe
-infratrack-*.exe
+/infratrack
+/infratrack.exe
+/infratrack-dev.exe
+/infratrack-*.exe
