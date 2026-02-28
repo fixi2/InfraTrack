@@ -1,4 +1,4 @@
-# Commandry (MVP)
+# Commandry
 
 Commandry is a local-first CLI that records explicitly executed commands and exports a deterministic markdown runbook.
 This project was renamed from InfraTrack to Commandry during the `v0.6.0` rebrand.
@@ -225,3 +225,4 @@ go test ./...
 ```
 
 If your AV still blocks test binaries, add a narrow exclusion for the repository test build paths (`.gocache`, `.gotmp`) rather than disabling protection globally.
+
